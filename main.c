@@ -6,6 +6,8 @@
 #define MAX_WIIMOTES 1
 // struct xwii_iface* dev;
 
+// source: wiiuse example code by Michael Laforest
+//  https://github.com/wiiuse/wiiuse
 /**
  *	@brief Callback that handles an event.
  *
@@ -264,6 +266,8 @@ void handle_event(struct wiimote_t* wm) {
 	}
 }
 
+// source: wiiuse example code by Michael Laforest
+//  https://github.com/wiiuse/wiiuse
 short any_wiimote_connected(wiimote** wm, int wiimotes) {
 	int i;
 	if (!wm) {
