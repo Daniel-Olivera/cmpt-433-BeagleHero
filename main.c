@@ -4,7 +4,6 @@
 
 #define WIIMOTE_PATH "~/sys/bus/hid/devices/0005:057E:0306.0001"
 #define MAX_WIIMOTES 1
-// struct xwii_iface* dev;
 
 // source: wiiuse example code by Michael Laforest
 //  https://github.com/wiiuse/wiiuse
