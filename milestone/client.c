@@ -1,5 +1,6 @@
 #include "client.h"
 #include "joystick.h"
+#include <wiiuse.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -9,8 +10,13 @@
 #include <string.h>
 #include <arpa/inet.h>
 
+#define MAX_WIIMOTES 1
+
 static pthread_t thread;
 static int socketDescriptor;
+
+static void setupWiimotes(wiimote **wiimotes);
+static void getGuitarInput(struct wiimote_t *wm);
 
 static void sleepForMs(long long delayInMs){
     const long long NS_PER_MS = 1000 * 1000;
@@ -25,6 +31,9 @@ static void sleepForMs(long long delayInMs){
 }
 
 void* send_function(void *args){
+    wiimote** wiimotes;
+    setupWiimotes(wiimotes);
+
     struct sockaddr_in sin;
     memset(&sin, 0, sizeof(sin));
     sin.sin_family = AF_INET;
@@ -48,6 +57,7 @@ void* send_function(void *args){
         char messageTx[MAX_LEN];
         char messageRx[MAX_LEN];
 
+        //get guitar input here
         joystick_direction dir = Joystick_getInput();
         snprintf(messageTx, MAX_LEN, "%d", dir);
 
@@ -67,6 +77,69 @@ void* send_function(void *args){
     }
 
     return NULL;
+}
+
+static void setupWiimotes(wiimote **wiimotes)
+{
+    int found, connected;
+
+    wiimotes = wiiuse_init(MAX_WIIMOTES);
+
+
+    found = wiiuse_find(wiimotes, MAX_WIIMOTES, 5);
+	if (!found) {
+		printf("No wiimotes found.\n");
+		return 0;
+	}
+
+
+    connected = wiiuse_connect(wiimotes, MAX_WIIMOTES);
+	if (connected) {
+		printf("Connected to %i wiimotes (of %i found).\n", connected, found);
+	} else {
+		printf("Failed to connect to any wiimote.\n");
+		return 0;
+	}
+
+    wiiuse_set_leds(wiimotes[0], WIIMOTE_LED_1);
+	wiiuse_motion_sensing(wiimotes[0], 0);
+	wiiuse_set_ir(wiimotes[0], 0);
+}
+
+static void getGuitarInput(struct wiimote_t *wm)
+{
+    if (wm->exp.type == EXP_GUITAR_HERO_3) {
+		/* guitar hero 3 guitar */
+		struct guitar_hero_3_t* gh3 = (guitar_hero_3_t*)&wm->exp.gh3;
+
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_STRUM_UP)) {
+			printf("Guitar: Strum Up pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_STRUM_DOWN))	{
+			printf("Guitar: Strum Down pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_YELLOW)) {
+			printf("Guitar: Yellow pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_GREEN)) {
+			printf("Guitar: Green pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_BLUE)) {
+			printf("Guitar: Blue pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_RED)) {
+			printf("Guitar: Red pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_ORANGE)) {
+			printf("Guitar: Orange pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_PLUS)) {
+			printf("Guitar: Plus pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_MINUS)) {
+			printf("Guitar: Minus pressed\n");
+		}
+	}
 }
 
 
