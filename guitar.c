@@ -1,9 +1,23 @@
 #include <wiiuse.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <netdb.h>
 #include <stdbool.h>
+#include <string.h>
+#include <arpa/inet.h>
 
-#define WIIMOTE_PATH "~/sys/bus/hid/devices/0005:057E:0306.0001"
 #define MAX_WIIMOTES 1
+
+#define PORT 12345
+#define SERVER_IP "192.168.1.81"
+#define MAX_LEN 1024
+
+static int socketDescriptor;
+
+static void setupWiimotes(wiimote **wiimotes);
+static void createTcpConnection();
 
 // source: wiiuse example code by Michael Laforest
 //  https://github.com/wiiuse/wiiuse
@@ -15,42 +29,42 @@
  *	This function is called automatically by the wiiuse library when an
  *	event occurs on the specified wiimote.
  */
-void handle_event(struct wiimote_t* wm) {
+void handle_event(struct wiimote_t* wm, char *message, int messageLength) {
 	printf("\n\n--- EVENT [id %i] ---\n", wm->unid);
 
 	/* if a button is pressed, report it */
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_A)) {
-		printf("A pressed\n");
+		snprintf(message, messageLength, "A pressed\n");
 	}
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_B)) {
-		printf("B pressed\n");
+		snprintf(message, messageLength, "B pressed\n");
 	}
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_UP)) {
-		printf("UP pressed\n");
+		snprintf(message, messageLength, "UP pressed\n");
 	}
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_DOWN))	{
-		printf("DOWN pressed\n");
+		snprintf(message, messageLength, "DOWN pressed\n");
 	}
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_LEFT))	{
-		printf("LEFT pressed\n");
+		snprintf(message, messageLength, "LEFT pressed\n");
 	}
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_RIGHT))	{
-		printf("RIGHT pressed\n");
+		snprintf(message, messageLength, "RIGHT pressed\n");
 	}
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_MINUS))	{
-		printf("MINUS pressed\n");
+		snprintf(message, messageLength, "MINUS pressed\n");
 	}
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_PLUS))	{
-		printf("PLUS pressed\n");
+		snprintf(message, messageLength, "PLUS pressed\n");
 	}
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_ONE)) {
-		printf("ONE pressed\n");
+		snprintf(message, messageLength, "ONE pressed\n");
 	}
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_TWO)) {
-		printf("TWO pressed\n");
+		snprintf(message, messageLength, "TWO pressed\n");
 	}
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_HOME))	{
-		printf("HOME pressed\n");
+		snprintf(message, messageLength, "HOME pressed\n");
 	}
 
 	/*
@@ -82,36 +96,36 @@ void handle_event(struct wiimote_t* wm) {
 		struct guitar_hero_3_t* gh3 = (guitar_hero_3_t*)&wm->exp.gh3;
 
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_STRUM_UP)) {
-			printf("Guitar: Strum Up pressed\n");
+			snprintf(message, messageLength, "Guitar: Strum Up pressed\n");
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_STRUM_DOWN))	{
-			printf("Guitar: Strum Down pressed\n");
+			snprintf(message, messageLength, "Guitar: Strum Down pressed\n");
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_YELLOW)) {
-			printf("Guitar: Yellow pressed\n");
+			snprintf(message, messageLength, "Guitar: Yellow pressed\n");
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_GREEN)) {
-			printf("Guitar: Green pressed\n");
+			snprintf(message, messageLength, "Guitar: Green pressed\n");
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_BLUE)) {
-			printf("Guitar: Blue pressed\n");
+			snprintf(message, messageLength, "Guitar: Blue pressed\n");
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_RED)) {
-			printf("Guitar: Red pressed\n");
+			snprintf(message, messageLength, "Guitar: Red pressed\n");
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_ORANGE)) {
-			printf("Guitar: Orange pressed\n");
+			snprintf(message, messageLength, "Guitar: Orange pressed\n");
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_PLUS)) {
-			printf("Guitar: Plus pressed\n");
+			snprintf(message, messageLength, "Guitar: Plus pressed\n");
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_MINUS)) {
-			printf("Guitar: Minus pressed\n");
+			snprintf(message, messageLength, "Guitar: Minus pressed\n");
 		}
 
-		printf("Guitar whammy bar:          %f\n", gh3->whammy_bar);
-		printf("Guitar joystick angle:      %f\n", gh3->js.ang);
-		printf("Guitar joystick magnitude:  %f\n", gh3->js.mag);
+		// printf("Guitar whammy bar:          %f\n", gh3->whammy_bar);
+		// printf("Guitar joystick angle:      %f\n", gh3->js.ang);
+		// printf("Guitar joystick magnitude:  %f\n", gh3->js.mag);
 	} 
 }
 
@@ -137,6 +151,43 @@ int main()
     printf("Hello World!\n");
 
     wiimote** wiimotes;
+    
+	setupWiimotes(wiimotes);
+
+	createTcpConnection();
+
+    while(any_wiimote_connected(wiimotes, MAX_WIIMOTES)) {
+        if(wiiuse_poll(wiimotes, MAX_WIIMOTES) == 0) {
+			continue;
+		}
+
+		char messageTx[MAX_LEN];
+		char messageRx[MAX_LEN];
+
+		switch (wiimotes[0]->event) {
+			case WIIUSE_EVENT:
+				/* a generic event occurred */
+				handle_event(wiimotes[0], messageTx, MAX_LEN);
+				break;
+
+			default:
+				break;
+		}
+
+		if(send(socketDescriptor, messageTx, strlen(messageTx), 0) < 0){
+			printf("ERROR: Failed to send message\n");
+		}
+        
+    }
+
+    wiiuse_cleanup(wiimotes, MAX_WIIMOTES);
+	close(socketDescriptor);
+
+    return 0;
+}
+
+static void setupWiimotes(wiimote **wiimotes)
+{
     int found, connected;
 
     wiimotes = wiiuse_init(MAX_WIIMOTES);
@@ -156,30 +207,30 @@ int main()
 		printf("Failed to connect to any wiimote.\n");
 		return 0;
 	}
-    
+
     wiiuse_set_leds(wiimotes[0], WIIMOTE_LED_1);
 	wiiuse_motion_sensing(wiimotes[0], 0);
 	wiiuse_set_ir(wiimotes[0], 0);
+}
 
-    while(any_wiimote_connected(wiimotes, MAX_WIIMOTES)) {
-        if(wiiuse_poll(wiimotes, MAX_WIIMOTES)) {
-            
-
-            for(int i = 0; i < MAX_WIIMOTES; i++) {
-                switch (wiimotes[i]->event) {
-					case WIIUSE_EVENT:
-						/* a generic event occurred */
-						handle_event(wiimotes[i]);
-						break;
-
-					default:
-						break;
-                }
-            }
-        }
+static void createTcpConnection()
+{
+	struct sockaddr_in sin;
+    memset(&sin, 0, sizeof(sin));
+    sin.sin_family = AF_INET;
+    sin.sin_port = htons(PORT);
+    sin.sin_addr.s_addr = inet_addr(SERVER_IP);
+    
+    socketDescriptor = socket(AF_INET, SOCK_STREAM, 0);
+    if(socketDescriptor == -1){
+        printf("ERROR: Failed to create socket\n");
+        exit(-1);
     }
 
-    wiiuse_cleanup(wiimotes, MAX_WIIMOTES);
+    if(connect(socketDescriptor, (struct sockaddr*)&sin, sizeof(sin)) < 0){
+        printf("ERROR: Failed to connect\n");
+        exit(-1);
+    }
 
-    return 0;
+    printf("Connected to BBG server\n");
 }
