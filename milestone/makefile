@@ -13,7 +13,7 @@ client:
 	$(CC_C) $(CFLAGS) main.c client.c -o $(OUTDIR)/$(OUTFILE_CLIENT)
 
 server:
-	$(CC_C) $(CFLAGS) main2.c server.c -o $(OUTDIR)/$(OUTFILE_SERVER)
+	$(CC_C) $(CFLAGS) main2.c server.c led.c -o $(OUTDIR)/$(OUTFILE_SERVER)
 
 clean:
 	rm $(OUTDIR)/$(OUTFILE)
