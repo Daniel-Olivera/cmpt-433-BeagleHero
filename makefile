@@ -1,5 +1,5 @@
 TARGET = guitarToTCP
-SOURCES = main.c
+SOURCES = guitar.c
 OUTDIR = $(HOME)/cmpt433/public/project
 
 CROSS_COMPILE = arm-linux-gnueabihf-

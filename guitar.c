@@ -151,6 +151,7 @@ int main()
     printf("Hello World!\n");
 
     wiimote** wiimotes;
+	wiimotes = wiiuse_init(MAX_WIIMOTES);
     
 	setupWiimotes(wiimotes);
 
@@ -162,7 +163,7 @@ int main()
 		}
 
 		char messageTx[MAX_LEN];
-		char messageRx[MAX_LEN];
+		// char messageRx[MAX_LEN];
 
 		switch (wiimotes[0]->event) {
 			case WIIUSE_EVENT:
@@ -190,13 +191,11 @@ static void setupWiimotes(wiimote **wiimotes)
 {
     int found, connected;
 
-    wiimotes = wiiuse_init(MAX_WIIMOTES);
-
 
     found = wiiuse_find(wiimotes, MAX_WIIMOTES, 5);
 	if (!found) {
 		printf("No wiimotes found.\n");
-		return 0;
+		return;
 	}
 
 
@@ -205,7 +204,7 @@ static void setupWiimotes(wiimote **wiimotes)
 		printf("Connected to %i wiimotes (of %i found).\n", connected, found);
 	} else {
 		printf("Failed to connect to any wiimote.\n");
-		return 0;
+		return;
 	}
 
     wiiuse_set_leds(wiimotes[0], WIIMOTE_LED_1);
