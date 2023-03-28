@@ -45,6 +45,7 @@ static void *guitarThreadMain(void *args)
 	while(!thread_shutdown) {
 
     	wiimote** wiimotes;
+		wiimotes = wiiuse_init(MAX_WIIMOTES);
 
 		setupWiimotes(wiimotes);
 
