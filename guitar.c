@@ -62,8 +62,7 @@ static void *guitarThreadMain(void *args)
 				case WIIUSE_EVENT:
 					/* a generic event occurred */
 					handle_event(wiimotes[0]);
-					long long inputTime = Timer_checkTimerInMS();
-					printf("Input at %lld\n", inputTime);
+					
 					break;
 
 				default:
@@ -121,65 +120,6 @@ static void handle_event(struct wiimote_t* wm)
 {
 	printf("\n\n--- EVENT [id %i] ---\n", wm->unid);
 
-	/* if a button is pressed, report it */
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_A)) {
-		printf("A pressed\n");
-	}
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_B)) {
-		printf("B pressed\n");
-	}
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_UP)) {
-		printf("UP pressed\n");
-	}
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_DOWN))	{
-		printf("DOWN pressed\n");
-	}
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_LEFT))	{
-		printf("LEFT pressed\n");
-	}
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_RIGHT))	{
-		printf("RIGHT pressed\n");
-	}
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_MINUS))	{
-		printf("MINUS pressed\n");
-	}
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_PLUS))	{
-		printf("PLUS pressed\n");
-	}
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_ONE)) {
-		printf("ONE pressed\n");
-	}
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_TWO)) {
-		printf("TWO pressed\n");
-	}
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_HOME))	{
-		printf("HOME pressed\n");
-	}
-
-	/*
-	 *	Pressing minus will tell the wiimote we are no longer interested in movement.
-	 *	This is useful because it saves battery power.
-	 */
-	if (IS_JUST_PRESSED(wm, WIIMOTE_BUTTON_MINUS)) {
-		wiiuse_motion_sensing(wm, 0);
-	}
-
-	/*
-	 *	Pressing plus will tell the wiimote we are interested in movement.
-	 */
-	if (IS_JUST_PRESSED(wm, WIIMOTE_BUTTON_PLUS)) {
-		wiiuse_motion_sensing(wm, 1);
-	}
-
-	/*
-	 *	Pressing B will toggle the rumble
-	 *
-	 *	if B is pressed but is not held, toggle the rumble
-	 */
-	if (IS_JUST_PRESSED(wm, WIIMOTE_BUTTON_B)) {
-		wiiuse_toggle_rumble(wm);
-	}
-
 	if (wm->exp.type == EXP_GUITAR_HERO_3) {
 		/* guitar hero 3 guitar */
 		struct guitar_hero_3_t* gh3 = (guitar_hero_3_t*)&wm->exp.gh3;
@@ -212,8 +152,48 @@ static void handle_event(struct wiimote_t* wm)
 			printf("Guitar: Minus pressed\n");
 		}
 
-		printf("Guitar whammy bar:          %f\n", gh3->whammy_bar);
-		printf("Guitar joystick angle:      %f\n", gh3->js.ang);
-		printf("Guitar joystick magnitude:  %f\n", gh3->js.mag);
-	} 
+		long long inputTime = Timer_checkTimerInMS();
+		printf("Input at %lld\n", inputTime);
+
+		// printf("Guitar whammy bar:          %f\n", gh3->whammy_bar);
+		// printf("Guitar joystick angle:      %f\n", gh3->js.ang);
+		// printf("Guitar joystick magnitude:  %f\n", gh3->js.mag);
+
+	}
+
+		/* if a button is pressed, report it */
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_A)) {
+		// 	printf("A pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_B)) {
+		// 	printf("B pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_UP)) {
+		// 	printf("UP pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_DOWN))	{
+		// 	printf("DOWN pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_LEFT))	{
+		// 	printf("LEFT pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_RIGHT))	{
+		// 	printf("RIGHT pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_MINUS))	{
+		// 	printf("MINUS pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_PLUS))	{
+		// 	printf("PLUS pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_ONE)) {
+		// 	printf("ONE pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_TWO)) {
+		// 	printf("TWO pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_HOME))	{
+		// 	printf("HOME pressed\n");
+		// }
+	
 }
