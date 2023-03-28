@@ -5,6 +5,8 @@
 #define WIIMOTE_PATH "~/sys/bus/hid/devices/0005:057E:0306.0001"
 #define MAX_WIIMOTES 1
 
+static void setupWiimotes(wiimote **wiimotes);
+
 // source: wiiuse example code by Michael Laforest
 //  https://github.com/wiiuse/wiiuse
 /**
@@ -15,7 +17,87 @@
  *	This function is called automatically by the wiiuse library when an
  *	event occurs on the specified wiimote.
  */
-void handle_event(struct wiimote_t* wm) {
+static void handle_event(struct wiimote_t* wm);
+
+// source: wiiuse example code by Michael Laforest
+//  https://github.com/wiiuse/wiiuse
+static short any_wiimote_connected(wiimote** wm, int wiimotes);
+
+
+int main()
+{
+    printf("Hello World!\n");
+
+    wiimote** wiimotes;
+    
+	setupWiimotes(wiimotes);
+
+    while(any_wiimote_connected(wiimotes, MAX_WIIMOTES)) {
+        if(wiiuse_poll(wiimotes, MAX_WIIMOTES)) {
+            
+
+            for(int i = 0; i < MAX_WIIMOTES; i++) {
+                switch (wiimotes[i]->event) {
+					case WIIUSE_EVENT:
+						/* a generic event occurred */
+						handle_event(wiimotes[i]);
+						break;
+
+					default:
+						break;
+                }
+            }
+        }
+    }
+
+    wiiuse_cleanup(wiimotes, MAX_WIIMOTES);
+
+    return 0;
+}
+
+static void setupWiimotes(wiimote **wiimotes)
+{
+    int found, connected;
+
+
+    found = wiiuse_find(wiimotes, MAX_WIIMOTES, 5);
+	if (!found) {
+		printf("No wiimotes found.\n");
+		return;
+	}
+
+
+    connected = wiiuse_connect(wiimotes, MAX_WIIMOTES);
+	if (connected) {
+		printf("Connected to %i wiimotes (of %i found).\n", connected, found);
+	} else {
+		printf("Failed to connect to any wiimote.\n");
+		return;
+	}
+
+    wiiuse_set_leds(wiimotes[0], WIIMOTE_LED_1);
+	wiiuse_motion_sensing(wiimotes[0], 0);
+	wiiuse_set_ir(wiimotes[0], 0);
+}
+
+static short any_wiimote_connected(wiimote** wm, int wiimotes)
+{
+	int i;
+	if (!wm) {
+		return 0;
+	}
+
+	for (i = 0; i < wiimotes; i++) {
+		if (wm[i] && WIIMOTE_IS_CONNECTED(wm[i])) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static void handle_event(struct wiimote_t* wm) 
+{
 	printf("\n\n--- EVENT [id %i] ---\n", wm->unid);
 
 	/* if a button is pressed, report it */
@@ -113,73 +195,4 @@ void handle_event(struct wiimote_t* wm) {
 		printf("Guitar joystick angle:      %f\n", gh3->js.ang);
 		printf("Guitar joystick magnitude:  %f\n", gh3->js.mag);
 	} 
-}
-
-// source: wiiuse example code by Michael Laforest
-//  https://github.com/wiiuse/wiiuse
-short any_wiimote_connected(wiimote** wm, int wiimotes) {
-	int i;
-	if (!wm) {
-		return 0;
-	}
-
-	for (i = 0; i < wiimotes; i++) {
-		if (wm[i] && WIIMOTE_IS_CONNECTED(wm[i])) {
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
-int main()
-{
-    printf("Hello World!\n");
-
-    wiimote** wiimotes;
-    int found, connected;
-
-    wiimotes = wiiuse_init(MAX_WIIMOTES);
-
-
-    found = wiiuse_find(wiimotes, MAX_WIIMOTES, 5);
-	if (!found) {
-		printf("No wiimotes found.\n");
-		return 0;
-	}
-
-
-    connected = wiiuse_connect(wiimotes, MAX_WIIMOTES);
-	if (connected) {
-		printf("Connected to %i wiimotes (of %i found).\n", connected, found);
-	} else {
-		printf("Failed to connect to any wiimote.\n");
-		return 0;
-	}
-    
-    wiiuse_set_leds(wiimotes[0], WIIMOTE_LED_1);
-	wiiuse_motion_sensing(wiimotes[0], 0);
-	wiiuse_set_ir(wiimotes[0], 0);
-
-    while(any_wiimote_connected(wiimotes, MAX_WIIMOTES)) {
-        if(wiiuse_poll(wiimotes, MAX_WIIMOTES)) {
-            
-
-            for(int i = 0; i < MAX_WIIMOTES; i++) {
-                switch (wiimotes[i]->event) {
-					case WIIUSE_EVENT:
-						/* a generic event occurred */
-						handle_event(wiimotes[i]);
-						break;
-
-					default:
-						break;
-                }
-            }
-        }
-    }
-
-    wiiuse_cleanup(wiimotes, MAX_WIIMOTES);
-
-    return 0;
 }
