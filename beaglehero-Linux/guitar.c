@@ -1,0 +1,199 @@
+#include <wiiuse.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdbool.h>
+
+#include "include/timing.h"
+
+#define MAX_WIIMOTES 1
+
+static bool thread_shutdown = false;
+static pthread_t guitar_pthread;
+
+static void setupWiimotes(wiimote **wiimotes);
+static void *guitarThreadMain(void *args);
+
+// source: wiiuse example code by Michael Laforest
+//  https://github.com/wiiuse/wiiuse
+/**
+ *	@brief Callback that handles an event.
+ *
+ *	@param wm		Pointer to a wiimote_t structure.
+ *
+ *	This function is called automatically by the wiiuse library when an
+ *	event occurs on the specified wiimote.
+ */
+static void handle_event(struct wiimote_t* wm);
+
+// source: wiiuse example code by Michael Laforest
+//  https://github.com/wiiuse/wiiuse
+static short any_wiimote_connected(wiimote** wm, int wiimotes);
+
+void Guitar_init(void)
+{
+	pthread_create(&guitar_pthread, NULL, guitarThreadMain, NULL);
+}
+
+void Guitar_cleanup(void)
+{
+	thread_shutdown = true;
+
+	pthread_join(guitar_pthread, NULL);
+}
+
+static void *guitarThreadMain(void *args)
+{
+	while(!thread_shutdown) {
+
+    	wiimote** wiimotes;
+		wiimotes = wiiuse_init(MAX_WIIMOTES);
+
+		setupWiimotes(wiimotes);
+
+		Timer_startTimer();
+
+		while(any_wiimote_connected(wiimotes, MAX_WIIMOTES)) {
+			if(wiiuse_poll(wiimotes, MAX_WIIMOTES) == 0) {
+				continue;
+			}
+
+
+			switch (wiimotes[0]->event) {
+				case WIIUSE_EVENT:
+					/* a generic event occurred */
+					handle_event(wiimotes[0]);
+					
+					break;
+
+				default:
+					break;
+			}
+		}
+
+		wiiuse_cleanup(wiimotes, MAX_WIIMOTES);
+	}
+    
+
+    return NULL;
+}
+
+static void setupWiimotes(wiimote **wiimotes)
+{
+    int found, connected;
+
+    found = wiiuse_find(wiimotes, MAX_WIIMOTES, 5);
+	if (!found) {
+		printf("No wiimotes found.\n");
+		return;
+	}
+
+    connected = wiiuse_connect(wiimotes, MAX_WIIMOTES);
+	if (connected) {
+		printf("Connected to %i wiimotes (of %i found).\n", connected, found);
+	} else {
+		printf("Failed to connect to any wiimote.\n");
+		return;
+	}
+
+    wiiuse_set_leds(wiimotes[0], WIIMOTE_LED_1);
+	wiiuse_motion_sensing(wiimotes[0], 0);
+	wiiuse_set_ir(wiimotes[0], 0);
+}
+
+static short any_wiimote_connected(wiimote** wm, int wiimotes)
+{
+	int i;
+	if (!wm) {
+		return 0;
+	}
+
+	for (i = 0; i < wiimotes; i++) {
+		if (wm[i] && WIIMOTE_IS_CONNECTED(wm[i])) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static void handle_event(struct wiimote_t* wm) 
+{
+	printf("\n\n--- EVENT [id %i] ---\n", wm->unid);
+
+	if (wm->exp.type == EXP_GUITAR_HERO_3) {
+		/* guitar hero 3 guitar */
+		struct guitar_hero_3_t* gh3 = (guitar_hero_3_t*)&wm->exp.gh3;
+
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_STRUM_UP)) {
+			printf("Guitar: Strum Up pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_STRUM_DOWN))	{
+			printf("Guitar: Strum Down pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_YELLOW)) {
+			printf("Guitar: Yellow pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_GREEN)) {
+			printf("Guitar: Green pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_BLUE)) {
+			printf("Guitar: Blue pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_RED)) {
+			printf("Guitar: Red pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_ORANGE)) {
+			printf("Guitar: Orange pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_PLUS)) {
+			printf("Guitar: Plus pressed\n");
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_MINUS)) {
+			printf("Guitar: Minus pressed\n");
+		}
+
+		long long inputTime = Timer_checkTimerInMS();
+		printf("Input at %lld\n", inputTime);
+
+		// printf("Guitar whammy bar:          %f\n", gh3->whammy_bar);
+		// printf("Guitar joystick angle:      %f\n", gh3->js.ang);
+		// printf("Guitar joystick magnitude:  %f\n", gh3->js.mag);
+
+	}
+
+		/* if a button is pressed, report it */
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_A)) {
+		// 	printf("A pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_B)) {
+		// 	printf("B pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_UP)) {
+		// 	printf("UP pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_DOWN))	{
+		// 	printf("DOWN pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_LEFT))	{
+		// 	printf("LEFT pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_RIGHT))	{
+		// 	printf("RIGHT pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_MINUS))	{
+		// 	printf("MINUS pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_PLUS))	{
+		// 	printf("PLUS pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_ONE)) {
+		// 	printf("ONE pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_TWO)) {
+		// 	printf("TWO pressed\n");
+		// }
+		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_HOME))	{
+		// 	printf("HOME pressed\n");
+		// }
+	
+}
