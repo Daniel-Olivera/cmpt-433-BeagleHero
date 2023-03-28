@@ -3,7 +3,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define WIIMOTE_PATH "~/sys/bus/hid/devices/0005:057E:0306.0001"
+#include "include/timing.h"
+
 #define MAX_WIIMOTES 1
 
 static bool thread_shutdown = false;
@@ -49,6 +50,8 @@ static void *guitarThreadMain(void *args)
 
 		setupWiimotes(wiimotes);
 
+		Timer_startTimer();
+
 		while(any_wiimote_connected(wiimotes, MAX_WIIMOTES)) {
 			if(wiiuse_poll(wiimotes, MAX_WIIMOTES) == 0) {
 				continue;
@@ -59,6 +62,8 @@ static void *guitarThreadMain(void *args)
 				case WIIUSE_EVENT:
 					/* a generic event occurred */
 					handle_event(wiimotes[0]);
+					long long inputTime = Timer_checkTimerInMS();
+					printf("Input at %lld\n", inputTime);
 					break;
 
 				default:
