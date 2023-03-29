@@ -4,6 +4,8 @@
 #include <stdbool.h>
 
 #include "include/timing.h"
+#include "include/memoryShare.h"
+#include "include/sharedInputStruct.h"
 
 #define MAX_WIIMOTES 1
 
@@ -43,6 +45,8 @@ void Guitar_cleanup(void)
 
 static void *guitarThreadMain(void *args)
 {
+	volatile void *pPruBase = PRU_getPruMmapAddr();
+	volatile sharedInputStruct_t *pSharedInput = PRU0_MEM_FROM_BASE(pPruBase);
 	while(!thread_shutdown) {
 
     	wiimote** wiimotes;
@@ -62,6 +66,7 @@ static void *guitarThreadMain(void *args)
 				case WIIUSE_EVENT:
 					/* a generic event occurred */
 					handle_event(wiimotes[0]);
+					pSharedInput->newInput = true;
 					
 					break;
 
