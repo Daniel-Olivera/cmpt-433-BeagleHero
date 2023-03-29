@@ -12,6 +12,7 @@
 static bool thread_shutdown = false;
 static pthread_t guitar_pthread;
 
+
 static void setupWiimotes(wiimote **wiimotes);
 static void *guitarThreadMain(void *args);
 
@@ -25,7 +26,7 @@ static void *guitarThreadMain(void *args);
  *	This function is called automatically by the wiiuse library when an
  *	event occurs on the specified wiimote.
  */
-static void handle_event(struct wiimote_t* wm);
+static unsigned char handle_event(struct wiimote_t* wm);
 
 // source: wiiuse example code by Michael Laforest
 //  https://github.com/wiiuse/wiiuse
@@ -61,12 +62,19 @@ static void *guitarThreadMain(void *args)
 				continue;
 			}
 
+			unsigned char input;
 
 			switch (wiimotes[0]->event) {
 				case WIIUSE_EVENT:
 					/* a generic event occurred */
-					handle_event(wiimotes[0]);
-					pSharedInput->newInput = true;
+					input = handle_event(wiimotes[0]);
+					//if some button is actually active
+					if(input > 0) {
+						long long inputTime = Timer_checkTimerInMS();
+						pSharedInput->input = input;
+						pSharedInput->inputTimestamp = inputTime;
+						pSharedInput->newInput = true;
+					}
 					
 					break;
 
@@ -121,9 +129,10 @@ static short any_wiimote_connected(wiimote** wm, int wiimotes)
 	return 0;
 }
 
-static void handle_event(struct wiimote_t* wm) 
+static unsigned char handle_event(struct wiimote_t* wm) 
 {
 	printf("\n\n--- EVENT [id %i] ---\n", wm->unid);
+	unsigned char input = 0x00;
 
 	if (wm->exp.type == EXP_GUITAR_HERO_3) {
 		/* guitar hero 3 guitar */
@@ -131,24 +140,31 @@ static void handle_event(struct wiimote_t* wm)
 
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_STRUM_UP)) {
 			printf("Guitar: Strum Up pressed\n");
+			input |= STRUM_MASK;
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_STRUM_DOWN))	{
 			printf("Guitar: Strum Down pressed\n");
-		}
-		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_YELLOW)) {
-			printf("Guitar: Yellow pressed\n");
+			input |= STRUM_MASK;
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_GREEN)) {
 			printf("Guitar: Green pressed\n");
-		}
-		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_BLUE)) {
-			printf("Guitar: Blue pressed\n");
+			input |= GREEN_MASK;
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_RED)) {
 			printf("Guitar: Red pressed\n");
+			input |= RED_MASK;
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_YELLOW)) {
+			printf("Guitar: Yellow pressed\n");
+			input |= YELLOW_MASK;
+		}
+		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_BLUE)) {
+			printf("Guitar: Blue pressed\n");
+			input |= BLUE_MASK;
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_ORANGE)) {
 			printf("Guitar: Orange pressed\n");
+			input |= ORANGE_MASK;
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_PLUS)) {
 			printf("Guitar: Plus pressed\n");
@@ -157,14 +173,13 @@ static void handle_event(struct wiimote_t* wm)
 			printf("Guitar: Minus pressed\n");
 		}
 
-		long long inputTime = Timer_checkTimerInMS();
-		printf("Input at %lld\n", inputTime);
 
 		// printf("Guitar whammy bar:          %f\n", gh3->whammy_bar);
 		// printf("Guitar joystick angle:      %f\n", gh3->js.ang);
 		// printf("Guitar joystick magnitude:  %f\n", gh3->js.mag);
 
 	}
+	return input;
 
 		/* if a button is pressed, report it */
 		// if (IS_PRESSED(wm, WIIMOTE_BUTTON_A)) {
