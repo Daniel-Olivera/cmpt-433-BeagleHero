@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define START_BIT   6
+
 #define STRUM_BIT   5
 
 #define GREEN_BIT   4
@@ -10,6 +12,8 @@
 #define YELLOW_BIT  2
 #define BLUE_BIT    1
 #define ORANGE_BIT  0
+
+#define START_MASK  (1 << START_BIT)
 
 #define STRUM_MASK  (1 << STRUM_BIT)
 
@@ -20,11 +24,9 @@
 #define ORANGE_MASK (1 << ORANGE_BIT)
 
 /*
- *   unit64_t songBeginning
- *   - time when the PRU began the song. 
- *     Inputs are relative to this time.
  *   uint64_t inputTimestamp
  *   - the time of the input, relative to the start of the song.
+ *     This value is reported back by the PRU for testing
  *   unsigned char input
  *   - the actual input, expressed bitwise
  *   bool newInput
@@ -33,10 +35,13 @@
 */
 
 typedef struct {
-    uint64_t songBeginning; 
+    // uint64_t songBeginning; 
     uint64_t inputTimestamp;
+    bool songPlaying;
     unsigned char input;
     bool newInput;
+    bool noteHit;
+    bool newResponse;
 } sharedInputStruct_t;
 
 // WARNING:

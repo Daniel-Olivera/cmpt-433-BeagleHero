@@ -55,9 +55,8 @@ static void *guitarThreadMain(void *args)
 
 		setupWiimotes(wiimotes);
 
-		Timer_startTimer();
-
 		while(any_wiimote_connected(wiimotes, MAX_WIIMOTES)) {
+			printf("Last INPUT TIME? %lld\n", pSharedInput->inputTimestamp);
 			if(wiiuse_poll(wiimotes, MAX_WIIMOTES) == 0) {
 				continue;
 			}
@@ -70,9 +69,7 @@ static void *guitarThreadMain(void *args)
 					input = handle_event(wiimotes[0]);
 					//if some button is actually active
 					if(input > 0) {
-						long long inputTime = Timer_checkTimerInMS();
 						pSharedInput->input = input;
-						pSharedInput->inputTimestamp = inputTime;
 						pSharedInput->newInput = true;
 					}
 					
@@ -81,6 +78,8 @@ static void *guitarThreadMain(void *args)
 				default:
 					break;
 			}
+
+			
 		}
 
 		wiiuse_cleanup(wiimotes, MAX_WIIMOTES);
@@ -168,6 +167,7 @@ static unsigned char handle_event(struct wiimote_t* wm)
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_PLUS)) {
 			printf("Guitar: Plus pressed\n");
+			input |= START_MASK;
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_MINUS)) {
 			printf("Guitar: Minus pressed\n");
