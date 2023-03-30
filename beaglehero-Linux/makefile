@@ -1,5 +1,5 @@
 TARGET = beagleHero
-SOURCES = main.c guitar.c timing.c
+SOURCES = main.c guitar.c timing.c memoryShare.c
 OUTDIR = $(HOME)/cmpt433/public/project
 
 CROSS_COMPILE = arm-linux-gnueabihf-

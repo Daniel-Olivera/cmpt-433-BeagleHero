@@ -23,9 +23,16 @@ long long Timer_getTimeInMs(void)
     return milliseconds;
 }
 
+
 void Timer_startTimer()
 {
     timerStartedAtTime = Timer_getTimeInMs(); 
+    timerRunning = true;
+}
+
+void Timer_startTimerFrom(long long startTimeInMs)
+{
+    timerStartedAtTime = startTimeInMs; 
     timerRunning = true;
 }
 

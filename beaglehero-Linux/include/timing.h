@@ -9,6 +9,7 @@
 void Timer_init(void);
 
 void Timer_startTimer(void);
+void Timer_startTimerFrom(long long startTimeInMs);
 long long Timer_checkTimerInMS(void);
 void Timer_stopTimer(void);
 
