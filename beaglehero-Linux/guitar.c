@@ -56,7 +56,17 @@ static void *guitarThreadMain(void *args)
 		setupWiimotes(wiimotes);
 
 		while(any_wiimote_connected(wiimotes, MAX_WIIMOTES)) {
-			printf("Last INPUT TIME? %lld\n", pSharedInput->inputTimestamp);
+
+			if(pSharedInput->newResponse) {
+				if(pSharedInput->noteHit) {
+					printf("Correct\n");
+				} else {
+					printf("Incorrect\n");
+				}
+				printf("Input off by %d ms\n", pSharedInput->inputTimestamp);
+				pSharedInput->newResponse = false;
+			}
+
 			if(wiiuse_poll(wiimotes, MAX_WIIMOTES) == 0) {
 				continue;
 			}
@@ -66,9 +76,11 @@ static void *guitarThreadMain(void *args)
 			switch (wiimotes[0]->event) {
 				case WIIUSE_EVENT:
 					/* a generic event occurred */
+					input = 0x00;
 					input = handle_event(wiimotes[0]);
-					//if some button is actually active
-					if(input > 0) {
+					//if strum or start were hit
+					if((input & STRUM_MASK) != 0
+						|| (input & START_MASK) != 0) {
 						pSharedInput->input = input;
 						pSharedInput->newInput = true;
 					}
@@ -84,7 +96,7 @@ static void *guitarThreadMain(void *args)
 
 		wiiuse_cleanup(wiimotes, MAX_WIIMOTES);
 	}
-    
+    PRU_freePruMmapAddr(pPruBase);
 
     return NULL;
 }
