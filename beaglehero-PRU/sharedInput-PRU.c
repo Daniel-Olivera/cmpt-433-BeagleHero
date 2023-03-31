@@ -36,7 +36,6 @@ volatile sharedInputStruct_t *pSharedInputStruct =
 volatile beatmap_t *pBeatmap = 
     (volatile void *)PRU_SHAREDMEM;
 
-uint32_t cyclesSinceStart = 0;
 uint32_t msSinceStart = 0;
 
 void main(void)
@@ -63,12 +62,14 @@ void main(void)
 
             if(!pSharedInputStruct->songPlaying) continue;
 
-            pSharedInputStruct->inputTimestamp = msSinceStart;
+            
 
             if(pSharedInputStruct->input == pBeatmap->notes[0].input) {
+                pSharedInputStruct->inputTimestamp = (int32_t)pBeatmap->notes[0].timestamp - (int32_t)msSinceStart;
                 pSharedInputStruct->noteHit = true;
                 pSharedInputStruct->newResponse = true;
             } else {
+                pSharedInputStruct->inputTimestamp = (int32_t)pBeatmap->notes[0].timestamp - (int32_t)msSinceStart;
                 pSharedInputStruct->noteHit = false;
                 pSharedInputStruct->newResponse = true;
             }

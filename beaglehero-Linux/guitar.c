@@ -63,6 +63,7 @@ static void *guitarThreadMain(void *args)
 				} else {
 					printf("Incorrect\n");
 				}
+				printf("Input off by %d ms\n", pSharedInput->inputTimestamp);
 				pSharedInput->newResponse = false;
 			}
 
@@ -75,6 +76,7 @@ static void *guitarThreadMain(void *args)
 			switch (wiimotes[0]->event) {
 				case WIIUSE_EVENT:
 					/* a generic event occurred */
+					input = 0x00;
 					input = handle_event(wiimotes[0]);
 					//if strum or start were hit
 					if((input & STRUM_MASK) != 0

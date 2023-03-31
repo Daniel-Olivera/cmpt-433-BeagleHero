@@ -22,7 +22,7 @@ void Beatmap_init(void)
     pBeatmap->totalNotes = 1;
 
     pBeatmap->notes[0].input = 0x30;
-    
+    pBeatmap->notes[0].timestamp = 3000;
 }
 
 void Beatmap_cleanup(void)

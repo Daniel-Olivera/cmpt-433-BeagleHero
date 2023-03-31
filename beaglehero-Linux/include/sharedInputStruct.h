@@ -36,7 +36,7 @@
 
 typedef struct {
     // uint64_t songBeginning; 
-    uint64_t inputTimestamp;
+    int32_t inputTimestamp;
     bool songPlaying;
     unsigned char input;
     bool newInput;
