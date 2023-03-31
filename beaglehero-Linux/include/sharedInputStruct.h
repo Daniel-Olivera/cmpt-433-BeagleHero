@@ -51,5 +51,15 @@ typedef struct {
 // double, uint64_t: dword (8 byte) aligned
 // Add padding fields (char _p1) to pad out to alignment.
 
+typedef struct {
+    unsigned char input;
+    unsigned char _p1, _p2, _p3;
+    uint32_t timestamp;
+} note_t;
+
+typedef struct {
+    uint32_t totalNotes;
+    note_t notes[100];
+} beatmap_t;
 
 #endif

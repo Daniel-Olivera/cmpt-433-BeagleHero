@@ -25,14 +25,19 @@ volatile register uint32_t __R31; // input GPIO register
 
 #define THIS_PRU_DRAM_USABLE (THIS_PRU_DRAM + OFFSET)
 
+#define PRU_SHAREDMEM 0x10000 // Offset to shared memory
+
 #define CYCLES_PER_MS 200000
 
 // This works for both PRU0 and PRU1 as both map their own memory to 0x0000000
 volatile sharedInputStruct_t *pSharedInputStruct =
     (volatile void *)THIS_PRU_DRAM_USABLE;
 
+volatile beatmap_t *pBeatmap = 
+    (volatile void *)PRU_SHAREDMEM;
+
 uint32_t cyclesSinceStart = 0;
-uint64_t msSinceStart = 0;
+uint32_t msSinceStart = 0;
 
 void main(void)
 {
@@ -56,9 +61,17 @@ void main(void)
                     continue;
             }
 
-            if(!pSharedInputStruct->songPlaying) continue;    
+            if(!pSharedInputStruct->songPlaying) continue;
 
             pSharedInputStruct->inputTimestamp = msSinceStart;
+
+            if(pSharedInputStruct->input == pBeatmap->notes[0].input) {
+                pSharedInputStruct->noteHit = true;
+                pSharedInputStruct->newResponse = true;
+            } else {
+                pSharedInputStruct->noteHit = false;
+                pSharedInputStruct->newResponse = true;
+            }
             
             __R30 ^= DIGIT_ON_OFF_MASK;
             pSharedInputStruct->newInput = false;

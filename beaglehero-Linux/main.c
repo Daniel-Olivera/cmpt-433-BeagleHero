@@ -1,12 +1,15 @@
 #include <stdbool.h>
 
 #include "include/guitar.h"
+#include "include/beatmap.h"
 
 int main(int argc, char *args[])
 {
-    // Guitar_init();
+    Beatmap_init();
+    Guitar_init();
 
     while(true){}
 
-    // Guitar_cleanup();
+    Guitar_cleanup();
+    Beatmap_cleanup();
 }
