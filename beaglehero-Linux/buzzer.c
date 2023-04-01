@@ -2,6 +2,8 @@
 #include "midiParser.h"
 #include <stdlib.h>
 #include <time.h>
+#include <pthread.h>
+#include <stdbool.h>
 
 static char note_period_frequencies[NOTES][OCTAVES][FREQ_LEN] = {
     {"61162080", "30581040", "15288182", "7644675", "3822192", "1911132", "955566", "477783", "238891"}, // C
@@ -32,6 +34,11 @@ static char note_duty_frequencies[NOTES][OCTAVES][FREQ_LEN] = {
     {"17158545", "8580745", "4290372", "2145186", "1072593", "536291", "268146", "134073", "67036"}, // A#
     {"16196955", "8098478", "4049566", "2024784", "1012392", "506190", "253096", "126548", "63274"}, // B
 };
+
+static pthread_t thread;
+static double noteDuration = 0;
+static pthread_mutex_t buzzMutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t buzzCond = PTHREAD_COND_INITIALIZER;
 
 static void sleepForMs(long long delayInMs){
     const long long NS_PER_MS = 1000 * 1000;
@@ -125,25 +132,46 @@ void Buzzer_configure(char *fileName, char *input){
     fclose(pBuzzerFile);
 }
 
+void *buzzer_function(void *args){
+
+    while(true){
+        pthread_cond_wait(&buzzCond, &buzzMutex);
+        printf("Playing note..\n");
+        Buzzer_configure(BUZZER_ENABLE, "1");
+        sleepForMs(noteDuration);
+        Buzzer_configure(BUZZER_ENABLE, "0");
+    }
+
+    return NULL;
+}
+
+void Buzzer_start(void){
+    pthread_create(&thread, NULL, buzzer_function, NULL);
+    Buzzer_configure(BUZZER_DUTY_CYCLE, "0");
+}
+
+void Buzzer_stop(void){
+    pthread_join(thread, NULL);
+    pthread_mutex_destroy(&buzzMutex);
+    pthread_cond_destroy(&buzzCond);
+}
+
 void Buzzer_playNote(char *note, int octave, double duration){
     int convert_note = int_from_note(note);
     char *period = note_period_frequencies[convert_note][octave];
     char *duty_cycle = note_duty_frequencies[convert_note][octave];
-    duration = duration * 1000;
+    noteDuration = duration * 1000;
     
     Buzzer_configure(BUZZER_DUTY_CYCLE, "0");
     Buzzer_configure(BUZZER_PERIOD, period);
     Buzzer_configure(BUZZER_DUTY_CYCLE, duty_cycle);
-    Buzzer_configure(BUZZER_ENABLE, "1");
-
-    sleepForMs(duration);
-    Buzzer_configure(BUZZER_ENABLE, "0");
+    pthread_cond_signal(&buzzCond);
 }
 
 /*
 
+** OLD PROGRAM; ADJUST ACCORDINGLY FOR THREAD **
 Example program of using the buzzer with MIDI:
-
 
 int main(){
 
