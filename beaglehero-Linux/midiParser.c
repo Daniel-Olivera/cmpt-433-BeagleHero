@@ -5,21 +5,38 @@
     in smf.h
     https://github.com/stump/libsmf/blob/master/src/smf.h
 */
-Note* midiParser_readMidi(char* filepath)
+
+// Reference from smf_decode.c https://libsmf.sourceforge.net/api/
+static void note_from_int(char *buf, int note_number){
+    int songNote, octave;
+    char *names[] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+
+    octave = note_number / 12 - 1;
+    songNote = note_number % 12;
+
+    sprintf(buf, "%s %d", names[songNote], octave);
+}
+
+Song* midiParser_readMidi(char* filepath)
 {
-    Note notes[1024];
+    Song *song = malloc(sizeof(Song));
+	song->size = 0;
     smf_t *smf;
  	smf_event_t *event;
  
  	smf = smf_load(filepath);
   	if (smf == NULL) {
   		printf("Couldn't load file: %s", filepath);
-  		return 1;
+  		exit(-1);
   	}
 
 	char* tokens[16]; //16 was arbitrary, but the smf_event_decode() function only returns a short string
-	int notesIndex = 0;
-
+	int idxOn = 0;
+	int idxOff = 0;
+	double active_note_timestamps[MAX_NOTES];
+	double inactive_note_timestamps[MAX_NOTES];
+	int octv = 0;
+	char songNote[5];
   	while ((event = smf_get_next_event(smf)) != NULL) {
  		if (smf_event_is_metadata(event))
  			continue;
@@ -43,29 +60,57 @@ Note* midiParser_readMidi(char* filepath)
 
         // A note time being "active" is when the note starts
 		if(strcmp(tokens[1], "On") == 0){
-			notes[notesIndex].active = true;
+			song->notes[song->size].active = true;
 		}
         // A note time being "inactive" is when the note ends
 		else{
-			notes[notesIndex].active = false;
+			song->notes[song->size].active = false;
 		}
 
+		char *noteStore = malloc(sizeof(char) * 2);
+
+		// Reference from smf_decode.c https://libsmf.sourceforge.net/api/
+		note_from_int(songNote, event->midi_buffer[1]);
+		sscanf(songNote, "%s %d", noteStore, &octv);
+
         // Places the note character (i.e., A, B, C, D, etc.)
-		notes[notesIndex].note = tokens[5][0];
+		song->notes[song->size].note = noteStore;
         // Places the octave (the 4 in C4 for example)
-		notes[notesIndex].octave = tokens[5][1] - '0';
+		song->notes[song->size].octave = octv;
+
         // The current time in the song from 0. Or 'ppos' if you will
-		notes[notesIndex].timeStamp = event->time_seconds;
+		song->notes[song->size].timeStamp = event->time_seconds;
 
-		notesIndex++;
+		// Store the note durations 
+		if(strcmp(tokens[1], "On") == 0){
+			active_note_timestamps[idxOn] = event->time_seconds;
+			idxOn++;
+		}
+        // A note time being "inactive" is when the note ends
+		else{
+			inactive_note_timestamps[idxOff] = event->time_seconds;
+			idxOff++;
+		}
 
+		song->size++;
   	}
 
+	// Fill the note_durations array for our song
+	for(int i = 0; i < idxOn; i++){
+		song->note_durations[i] = inactive_note_timestamps[i]-active_note_timestamps[i];
+	}
+
     // Used for debugging
-	// for(int i = 0; i < notesIndex; i++){
-	// 	printf("[%d] Active %d, Note %c%d, Timestamp %f\n", i, notes[i].active, notes[i].note, notes[i].octave, notes[i].timeStamp);
-	// }
+	// for(int i = 0; i < song->size; i++){
+    //     printf("[%d] Active %d, Note %s%d, Timestamp %f\n", i, song->notes[i].active, song->notes[i].note, song->notes[i].octave, song->notes[i].timeStamp);
+    // }
 
  	smf_delete(smf);
-    return notes;
+    return song;
+}
+
+void midiParser_freeNotes(Song *song){
+	for(int i = 0; i < song->size; i++){
+		free(song->notes[i].note);
+	}
 }
