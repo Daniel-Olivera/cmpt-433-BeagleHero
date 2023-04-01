@@ -80,8 +80,7 @@ static void *guitarThreadMain(void *args)
 					input = handle_event(wiimotes[0]);
 					//if strum or start were hit
 					if((input & STRUM_MASK) != 0
-					|| (input & START_MASK) != 0
-					|| (input & MINUS_MASK) != 0) {
+						|| (input & START_MASK) != 0) {
 						pSharedInput->input = input;
 						pSharedInput->newInput = true;
 					}
