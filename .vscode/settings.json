@@ -2,7 +2,8 @@
     "files.associations": {
         "wiiuse.h": "c",
         "timing.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "sharedinputstruct.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

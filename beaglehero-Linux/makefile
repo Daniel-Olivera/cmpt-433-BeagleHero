@@ -14,6 +14,8 @@ app:
 	$(CC_C) $(CFLAGS) $(SOURCES) -o $(OUTDIR)/$(TARGET)  $(LFLAGS) $(SMFFLAGS) -lwiiuse -lbluetooth
 	mkdir -p $(OUTDIR)/midi-files
 	cp ./midi-files/* $(OUTDIR)/midi-files/	
+	mkdir -p $(OUTDIR)/beatmaps/
+	cp -r ./beatmaps/* $(OUTDIR)/beatmaps/
 
 clean:
 	rm $(OUTDIR)/$(TARGET)
