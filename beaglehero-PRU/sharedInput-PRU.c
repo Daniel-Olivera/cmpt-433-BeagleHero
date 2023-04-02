@@ -38,6 +38,7 @@ volatile sharedResponseStruct_t *pSharedResponse =
 volatile beatmap_t *pBeatmap = 
     (volatile void *)PRU_SHAREDMEM;
 
+uint32_t currentNote = 0;
 uint32_t msSinceStart = 0;
 
 void main(void)
@@ -59,6 +60,7 @@ void main(void)
                 && (pSharedInputStruct->input & START_MASK) != 0) {
                     pSharedInputStruct->songPlaying = true;
                     msSinceStart = 0;
+                    currentNote = 0;
                     continue;
             }
 
@@ -66,17 +68,17 @@ void main(void)
 
             
 
-            if(pSharedInputStruct->input == pBeatmap->notes[0].input) {
+            if(pSharedInputStruct->input == pBeatmap->notes[currentNote].input) {
                 // pSharedInputStruct->inputTimestamp = (int32_t)pBeatmap->notes[0].timestamp - (int32_t)msSinceStart;
                 pSharedResponse->noteHit = true;
                 pSharedResponse->newResponse = true;
+                currentNote += 1;
             } else {
                 // pSharedInputStruct->inputTimestamp = (int32_t)pBeatmap->notes[0].timestamp - (int32_t)msSinceStart;
                 pSharedResponse->noteHit = false;
                 pSharedResponse->newResponse = true;
             }
-            
-            __R30 ^= DIGIT_ON_OFF_MASK;
+            // __R30 ^= DIGIT_ON_OFF_MASK;
             pSharedInputStruct->newInput = false;
         }
 

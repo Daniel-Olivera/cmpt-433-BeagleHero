@@ -31,23 +31,29 @@ void Beatmap_init(char *filename)
         exit(1);
     }
 
-    pBeatmap->totalNotes =+ 0;
+    int totalNotes = 0;
     while (fgets(buffer, READ_BUFFER_SIZE, fileToRead) != NULL) {
         printf("%s\n", buffer);
         char *input = strtok(buffer, ",");
-        pBeatmap->notes[pBeatmap->totalNotes].input = atoi(input);
+        pBeatmap->notes[totalNotes].input = atoi(input);
 
-        input = strtok(buffer, ",");
-        pBeatmap->notes[pBeatmap->totalNotes].timestamp = atol(input);
+        input = strtok(0, ",");
+        pBeatmap->notes[totalNotes].timestamp = atol(input);
 
-        if(pBeatmap->notes[pBeatmap->totalNotes].input == 0
-        || pBeatmap->notes[pBeatmap->totalNotes].timestamp == 0) {
+        if(pBeatmap->notes[totalNotes].input == 0
+        || pBeatmap->notes[totalNotes].timestamp == 0) {
             printf("ERROR in %s, beatmap could not be read.", filename);
             exit(1);
         }
 
-        pBeatmap->totalNotes =+ 1;
+        totalNotes += 1;
     }
+
+    pBeatmap->totalNotes = totalNotes;
+    printf("Total notes: %d\n", pBeatmap->totalNotes);
+    // for(int i = 0; i < totalNotes; i++) {
+    //     printf("Input %d: %x, time: %d\n", i, pBeatmap->notes[i].input, pBeatmap->notes[i].timestamp);
+    // }
 
     fclose(fileToRead);
 }

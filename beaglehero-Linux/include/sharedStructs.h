@@ -61,9 +61,6 @@ typedef struct {
 } note_t;
 
 typedef struct {
-    // bool noteHit;
-    // bool newResponse;
-    unsigned char _p1, _p2;
     uint32_t totalNotes;
     note_t notes[100];
 } beatmap_t;
