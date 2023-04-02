@@ -36,13 +36,16 @@
 
 typedef struct {
     // uint64_t songBeginning; 
-    int32_t inputTimestamp;
+    // int32_t inputTimestamp;
     bool songPlaying;
     unsigned char input;
     bool newInput;
+} sharedInputStruct_t;
+
+typedef struct {
     bool noteHit;
     bool newResponse;
-} sharedInputStruct_t;
+} sharedResponseStruct_t;
 
 // WARNING:
 // Fields in the struct must be aligned to match ARM's alignment

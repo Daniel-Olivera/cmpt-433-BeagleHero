@@ -1,0 +1,8 @@
+MINUS   = 128
+PLUS    =  64
+STRUM   =  32
+GREEN   =  16
+RED     =   8
+YELLOW  =   4
+BLUE    =   2
+ORANGE  =   1
