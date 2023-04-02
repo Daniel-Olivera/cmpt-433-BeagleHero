@@ -79,8 +79,9 @@ static void *guitarThreadMain(void *args)
 					input = 0x00;
 					input = handle_event(wiimotes[0]);
 					//if strum or start were hit
-					if((input & STRUM_MASK) != 0
-						|| (input & START_MASK) != 0) {
+					if(    (input & STRUM_MASK) != 0
+						|| (input & START_MASK) != 0
+						|| (input & MINUS_MASK) != 0) {
 						pSharedInput->input = input;
 						pSharedInput->newInput = true;
 					}
@@ -183,6 +184,7 @@ static unsigned char handle_event(struct wiimote_t* wm)
 		}
 		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_MINUS)) {
 			printf("Guitar: Minus pressed\n");
+			input |= MINUS_MASK;
 		}
 
 
