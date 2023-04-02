@@ -13,7 +13,7 @@ static bool beatmapLoaded = false;
 volatile void *pPruBase;
 volatile beatmap_t *pBeatmap;
 
-void Beatmap_init(void)
+void Beatmap_init(char *filename)
 {
     if(beatmapLoaded) {
         printf("The beatmap is already loaded.\n");
@@ -23,11 +23,11 @@ void Beatmap_init(void)
     pPruBase = PRU_getPruMmapAddr();
 	pBeatmap = PRUSHARED_MEM_FROM_BASE(pPruBase);
     
-    FILE *fileToRead = fopen("beatmaps/test.csv", "r");
+    FILE *fileToRead = fopen(filename, "r");
     char buffer[READ_BUFFER_SIZE];
 
     if (fileToRead == NULL) {
-        printf("ERROR OPENING %s.", "test.csv");
+        printf("ERROR OPENING %s.", filename);
         exit(1);
     }
 
@@ -39,6 +39,12 @@ void Beatmap_init(void)
 
         input = strtok(buffer, ",");
         pBeatmap->notes[0].timestamp = atol(input);
+
+        if(pBeatmap->notes[0].input == 0
+        || pBeatmap->notes[0].timestamp == 0) {
+            printf("ERROR in %s, beatmap could not be read.", filename);
+            exit(1);
+        }
 
         pBeatmap->totalNotes =+ 1;
     }

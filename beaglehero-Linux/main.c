@@ -5,7 +5,7 @@
 
 int main(int argc, char *args[])
 {
-    Beatmap_init();
+    Beatmap_init("beatmaps/test.csv");
     Guitar_init();
 
     while(true){}
