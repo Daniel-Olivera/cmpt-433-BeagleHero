@@ -56,8 +56,11 @@ void main(void)
         
 
         if(pSharedInputStruct->newInput) {
+            unsigned char inputCopy = pSharedInputStruct->input;
+            pSharedInputStruct->newInput = false;
+
             if(!pSharedInputStruct->songPlaying
-                && (pSharedInputStruct->input & START_MASK) != 0) {
+                && (inputCopy & START_MASK) != 0) {
                     pSharedInputStruct->songPlaying = true;
                     msSinceStart = 0;
                     currentNote = 0;
@@ -68,7 +71,7 @@ void main(void)
 
             
 
-            if(pSharedInputStruct->input == pBeatmap->notes[currentNote].input) {
+            if(inputCopy == pBeatmap->notes[currentNote].input) {
                 // pSharedInputStruct->inputTimestamp = (int32_t)pBeatmap->notes[0].timestamp - (int32_t)msSinceStart;
                 pSharedResponse->noteHit = true;
                 pSharedResponse->newResponse = true;
@@ -79,7 +82,6 @@ void main(void)
                 pSharedResponse->newResponse = true;
             }
             // __R30 ^= DIGIT_ON_OFF_MASK;
-            pSharedInputStruct->newInput = false;
         }
 
         msSinceStart += 1;
