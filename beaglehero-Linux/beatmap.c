@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "include/memoryShare.h"
 #include "include/sharedInputStruct.h"
@@ -30,18 +31,19 @@ void Beatmap_init(void)
         exit(1);
     }
 
+    pBeatmap->totalNotes =+ 0;
     while (fgets(buffer, READ_BUFFER_SIZE, fileToRead) != NULL) {
         printf("%s\n", buffer);
-        
+        char *input = strtok(buffer, ",");
+        pBeatmap->notes[0].input = atoi(input);
+
+        input = strtok(buffer, ",");
+        pBeatmap->notes[0].timestamp = atol(input);
+
         pBeatmap->totalNotes =+ 1;
     }
 
     fclose(fileToRead);
-
-    // pBeatmap->totalNotes = 1;
-
-    // pBeatmap->notes[0].input = 0x30;
-    // pBeatmap->notes[0].timestamp = 3000;
 }
 
 void Beatmap_cleanup(void)
