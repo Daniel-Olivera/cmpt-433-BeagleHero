@@ -4,7 +4,8 @@
         "timing.h": "c",
         "stdint.h": "c",
         "sharedinputstruct.h": "c",
-        "stdbool.h": "c"
+        "stdbool.h": "c",
+        "sharedstructs.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

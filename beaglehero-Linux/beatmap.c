@@ -4,14 +4,14 @@
 #include <string.h>
 
 #include "include/memoryShare.h"
-#include "include/sharedInputStruct.h"
+#include "include/sharedStructs.h"
 
 #define READ_BUFFER_SIZE 100
 
 static bool beatmapLoaded = false;
 
-volatile void *pPruBase;
-volatile beatmap_t *pBeatmap;
+static volatile void *pPruBase;
+static volatile beatmap_t *pBeatmap;
 
 void Beatmap_init(char *filename)
 {
@@ -35,13 +35,13 @@ void Beatmap_init(char *filename)
     while (fgets(buffer, READ_BUFFER_SIZE, fileToRead) != NULL) {
         printf("%s\n", buffer);
         char *input = strtok(buffer, ",");
-        pBeatmap->notes[0].input = atoi(input);
+        pBeatmap->notes[pBeatmap->totalNotes].input = atoi(input);
 
         input = strtok(buffer, ",");
-        pBeatmap->notes[0].timestamp = atol(input);
+        pBeatmap->notes[pBeatmap->totalNotes].timestamp = atol(input);
 
-        if(pBeatmap->notes[0].input == 0
-        || pBeatmap->notes[0].timestamp == 0) {
+        if(pBeatmap->notes[pBeatmap->totalNotes].input == 0
+        || pBeatmap->notes[pBeatmap->totalNotes].timestamp == 0) {
             printf("ERROR in %s, beatmap could not be read.", filename);
             exit(1);
         }

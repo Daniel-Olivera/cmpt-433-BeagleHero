@@ -5,7 +5,7 @@
 
 #include "include/timing.h"
 #include "include/memoryShare.h"
-#include "include/sharedInputStruct.h"
+#include "include/sharedStructs.h"
 
 #define MAX_WIIMOTES 1
 
@@ -57,15 +57,15 @@ static void *guitarThreadMain(void *args)
 
 		while(any_wiimote_connected(wiimotes, MAX_WIIMOTES)) {
 
-			if(pSharedInput->newResponse) {
-				if(pSharedInput->noteHit) {
-					printf("Correct\n");
-				} else {
-					printf("Incorrect\n");
-				}
-				printf("Input off by %d ms\n", pSharedInput->inputTimestamp);
-				pSharedInput->newResponse = false;
-			}
+			// if(pSharedInput->newResponse) {
+			// 	if(pSharedInput->noteHit) {
+			// 		printf("Correct\n");
+			// 	} else {
+			// 		printf("Incorrect\n");
+			// 	}
+			// 	printf("Input off by %d ms\n", pSharedInput->inputTimestamp);
+			// 	pSharedInput->newResponse = false;
+			// }
 
 			if(wiiuse_poll(wiimotes, MAX_WIIMOTES) == 0) {
 				continue;

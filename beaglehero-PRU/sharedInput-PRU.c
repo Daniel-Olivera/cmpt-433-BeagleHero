@@ -2,8 +2,7 @@
 #include <stdbool.h>
 #include <pru_cfg.h>
 #include "resource_table_empty.h"
-#include "../beaglehero-Linux/include/sharedInputStruct.h"
-#include "../beaglehero-Linux/include/timing.h"
+#include "../beaglehero-Linux/include/sharedStructs.h"
 
 // Reference for shared RAM:
 // https://markayoder.github.io/PRUCookbook/05blocks/blocks.html#_controlling_the_pwm_frequency
@@ -33,6 +32,9 @@ volatile register uint32_t __R31; // input GPIO register
 volatile sharedInputStruct_t *pSharedInputStruct =
     (volatile void *)THIS_PRU_DRAM_USABLE;
 
+volatile sharedResponseStruct_t *pSharedResponse =
+    (volatile void *)PRU_SHAREDMEM;
+
 volatile beatmap_t *pBeatmap = 
     (volatile void *)PRU_SHAREDMEM;
 
@@ -42,12 +44,12 @@ void main(void)
 {
     // Initialize:
     // pSharedInputStruct->songBeginning = 0;
-    pSharedInputStruct->inputTimestamp = 0;
+    // pSharedInputStruct->inputTimestamp = 0;
     pSharedInputStruct->songPlaying = false;
     pSharedInputStruct->input = 0x00;
     pSharedInputStruct->newInput = false;
-    pSharedInputStruct->noteHit = false;
-    pSharedInputStruct->newResponse = false;
+    pSharedResponse->noteHit = false;
+    pSharedResponse->newResponse = false;
 
     while (true) {
         
@@ -65,13 +67,13 @@ void main(void)
             
 
             if(pSharedInputStruct->input == pBeatmap->notes[0].input) {
-                pSharedInputStruct->inputTimestamp = (int32_t)pBeatmap->notes[0].timestamp - (int32_t)msSinceStart;
-                pSharedInputStruct->noteHit = true;
-                pSharedInputStruct->newResponse = true;
+                // pSharedInputStruct->inputTimestamp = (int32_t)pBeatmap->notes[0].timestamp - (int32_t)msSinceStart;
+                pSharedResponse->noteHit = true;
+                pSharedResponse->newResponse = true;
             } else {
-                pSharedInputStruct->inputTimestamp = (int32_t)pBeatmap->notes[0].timestamp - (int32_t)msSinceStart;
-                pSharedInputStruct->noteHit = false;
-                pSharedInputStruct->newResponse = true;
+                // pSharedInputStruct->inputTimestamp = (int32_t)pBeatmap->notes[0].timestamp - (int32_t)msSinceStart;
+                pSharedResponse->noteHit = false;
+                pSharedResponse->newResponse = true;
             }
             
             __R30 ^= DIGIT_ON_OFF_MASK;
@@ -81,7 +83,5 @@ void main(void)
         msSinceStart += 1;
         __delay_cycles(CYCLES_PER_MS);
         
-    // // Sample button state to shared memory
-    // pSharedMemStruct->isButtonPressed = (__R31 & JOYSTICK_RIGHT_MASK) != 0;
     }
 }
