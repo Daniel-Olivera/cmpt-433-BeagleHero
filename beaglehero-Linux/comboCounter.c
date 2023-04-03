@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdint.h>
 
 #include "include/memoryShare.h"
 #include "include/sharedStructs.h"
@@ -10,6 +11,8 @@
 
 static bool thread_shutdown = false;
 static pthread_t combo_pthread;
+
+static uint16_t combo = 0;
 
 static void *comboThreadMain(void *args);
 
@@ -34,11 +37,17 @@ static void *comboThreadMain(void *args)
     while(!thread_shutdown) {
         if(pResponse->newResponse) {
         	if(pResponse->noteHit) {
-        		printf("Correct\n");
+                combo += 1;
+        		printf("Correct, %dx combo!\n", combo);
         	} else {
-        		printf("Incorrect\n");
+                combo = 0;
+        		printf("Incorrect, %dx combo!\n", combo);
         	}
         	pResponse->newResponse = false;
+        }
+        if(pResponse->songStarting) {
+            combo = 0;
+            pResponse->songStarting = false;
         }
     }
 

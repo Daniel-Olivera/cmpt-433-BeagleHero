@@ -46,6 +46,7 @@ typedef struct {
     int32_t timeDifference;
     bool noteHit;
     bool newResponse;
+    bool songStarting;
 } sharedResponseStruct_t;
 
 // WARNING:

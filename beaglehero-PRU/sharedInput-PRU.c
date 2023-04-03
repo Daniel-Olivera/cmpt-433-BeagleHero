@@ -28,7 +28,7 @@ volatile register uint32_t __R31; // input GPIO register
 
 #define CYCLES_PER_MS 200000
 
-#define NOTE_WINDOW_MS 50 // both + and -, so this gives a 100ms window
+#define NOTE_WINDOW_MS 100 // both + and -, so this gives a window twice this wide
 
 // This works for both PRU0 and PRU1 as both map their own memory to 0x0000000
 volatile sharedInputStruct_t *pSharedInputStruct =
@@ -55,6 +55,7 @@ void main(void)
     pSharedInputStruct->newInput = false;
     pSharedResponse->noteHit = false;
     pSharedResponse->newResponse = false;
+    pSharedResponse->songStarting = false;
     pBeatmap->totalNotes = 0;
 
     while (true) {
@@ -67,6 +68,7 @@ void main(void)
             if(!pSharedInputStruct->songPlaying
                 && (inputCopy & START_MASK) != 0) {
                     pSharedInputStruct->songPlaying = true;
+                    pSharedResponse->songStarting = true;
                     msSinceStart = 0;
                     currentNote = 0;
                     continue;
