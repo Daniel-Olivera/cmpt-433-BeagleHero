@@ -43,6 +43,7 @@ typedef struct {
 } sharedInputStruct_t;
 
 typedef struct {
+    int32_t timeDifference;
     bool noteHit;
     bool newResponse;
 } sharedResponseStruct_t;

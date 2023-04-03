@@ -10,8 +10,8 @@
 
 static bool beatmapLoaded = false;
 
-static volatile void *pPruBase;
-static volatile beatmap_t *pBeatmap;
+volatile void *pPruBase;
+volatile beatmap_t *pBeatmap;
 
 void Beatmap_init(char *filename)
 {
@@ -31,7 +31,7 @@ void Beatmap_init(char *filename)
         exit(1);
     }
 
-    int totalNotes = 0;
+    uint32_t totalNotes = 0;
     while (fgets(buffer, READ_BUFFER_SIZE, fileToRead) != NULL) {
         printf("%s\n", buffer);
         char *input = strtok(buffer, ",");
