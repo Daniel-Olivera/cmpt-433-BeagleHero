@@ -28,7 +28,7 @@ volatile register uint32_t __R31; // input GPIO register
 
 #define CYCLES_PER_MS 200000
 
-#define NOTE_WINDOW_MS 500 // both + and -, so this gives a 100ms window
+#define NOTE_WINDOW_MS 50 // both + and -, so this gives a 100ms window
 
 // This works for both PRU0 and PRU1 as both map their own memory to 0x0000000
 volatile sharedInputStruct_t *pSharedInputStruct =
