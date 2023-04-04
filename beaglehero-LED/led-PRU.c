@@ -25,8 +25,8 @@ volatile register uint32_t __R30;
 #define updateCycle 1
 
 
-
-
+// Reference for bit shifted RGB Colour Macros: 
+// https://os.mbed.com/components/NeoPixel-NeoMatrix-8x8/ 
 #define Color(r,g,b) ((r&0xFF) << 8 | (g&0xFF) << 16 | (b&0xff))
 #define RED (Color(63,0,0))
 #define GREEN (Color(0,63,0))
@@ -116,6 +116,7 @@ void main(void)
     cleanUp(grid);
 }
 
+
 void turnBitOn(void){
     __R30 |= 0x1<<DATA_PIN;      // Set the GPIO pin to 1
     __delay_cycles(oneCyclesOn-1);
@@ -130,6 +131,8 @@ void turnBitOff(void){
     __delay_cycles(zeroCyclesOff-2);
 }
 
+
+// Set LED based on provided colour
 void setLED(uint32_t colour){
     for(int i = 23; i >= 0; i--) {
         if(colour & ((uint32_t)0x1 << i)) {
@@ -140,6 +143,7 @@ void setLED(uint32_t colour){
     }
 }
 
+// Set the entire grid/array of LEDs based on the corresponding colours and provided matrix
 void setLedByArray(unsigned int* array){
     uint32_t colours[5] = {ORANGE,BLUE,YELLOW,RED,GREEN};
     for(int i= 0; i < 8; i++){
@@ -157,7 +161,7 @@ void setLedByArray(unsigned int* array){
     return;
 } 
 
-
+// Turns off all LEDs
 void turnAllOff(void){
     for(int j = 0; j < 64; j++) {
         for(int i = 23; i >= 0; i--) {
@@ -166,6 +170,10 @@ void turnAllOff(void){
     } 
 }
 
+
+// Reference for idea of using binary literal: 
+// https://stackoverflow.com/questions/2611764/can-i-use-a-binary-literal-in-c-or-c 
+// Initializes the LED grid with an array of binary Literals
 unsigned int* initLedGrid(){
     unsigned int* grid = malloc(8*sizeof(int));
     grid[0] = 0b00000000;
@@ -180,10 +188,11 @@ unsigned int* initLedGrid(){
 }
 
 
+// Cleans up the PRU pins as well as clearing any dynamically allocated memory
 void cleanUp(unsigned int* grid)
 {
+    turnAllOff();
     free(grid);
-
     // Send Reset
     __R30 &= ~(0x1<<DATA_PIN);   // Clear the GPIO pin
     __delay_cycles(cleanupCycles);
