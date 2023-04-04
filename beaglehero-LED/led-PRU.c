@@ -77,7 +77,6 @@ void main(void)
     pBeatmap->totalNotes = 0;
     
 
-    int flag = 1;
     uint32_t nextNoteTimeStamp= pBeatmap->notes[currentNote].timestamp;
     uint32_t timeStampOffset = pBeatmap->notes[currentNote].timestamp;
     while(true){
