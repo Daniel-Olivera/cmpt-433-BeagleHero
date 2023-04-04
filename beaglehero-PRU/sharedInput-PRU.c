@@ -54,8 +54,9 @@ void main(void)
     pSharedInputStruct->input = 0x00;
     pSharedInputStruct->newInput = false;
     pSharedResponse->noteHit = false;
-    pSharedResponse->newResponse = false;
+    pSharedResponse->newResponseCombo = false;
     pSharedResponse->songStarting = false;
+    pSharedResponse->noteAttemptedLED = false;
     pBeatmap->totalNotes = 0;
 
     while (true){
@@ -84,7 +85,8 @@ void main(void)
             
             pSharedResponse->noteHit = correctNoteHit && timingWindowHit;
             pSharedResponse->timeDifference = pBeatmap->notes[currentNote].input;
-            pSharedResponse->newResponse = true;
+            pSharedResponse->newResponseCombo = true;
+            pSharedResponse->noteAttemptedLED = true;
 
             iterateNote();
         }
@@ -93,7 +95,7 @@ void main(void)
            pSharedInputStruct->songPlaying) {
             pSharedResponse->noteHit = false;
             pSharedResponse->timeDifference = pBeatmap->notes[currentNote].input;
-            pSharedResponse->newResponse = true;
+            pSharedResponse->newResponseCombo = true;
 
             iterateNote();
         }

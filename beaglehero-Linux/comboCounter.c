@@ -35,11 +35,11 @@ static void *comboThreadMain(void *args)
 
     volatile sharedResponseStruct_t *pResponse = PRUSHARED_MEM_FROM_BASE(pPruBase);
 
-    pResponse->newResponse = false;
+    pResponse->newResponseCombo = false;
     Display_updateInteger(combo);
 
     while(!thread_shutdown) {
-        if(pResponse->newResponse) {
+        if(pResponse->newResponseCombo) {
         	if(pResponse->noteHit) {
                 combo += 1;
         		printf("Correct, %dx combo! Input = %d\n", combo, pResponse->timeDifference);
@@ -49,7 +49,7 @@ static void *comboThreadMain(void *args)
         	}
             Display_updateInteger(combo);
             
-        	pResponse->newResponse = false;
+        	pResponse->newResponseCombo = false;
         }
         if(pResponse->songStarting) {
             combo = 0;
