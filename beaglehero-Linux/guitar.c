@@ -57,16 +57,6 @@ static void *guitarThreadMain(void *args)
 
 		while(any_wiimote_connected(wiimotes, MAX_WIIMOTES)) {
 
-			// if(pSharedInput->newResponse) {
-			// 	if(pSharedInput->noteHit) {
-			// 		printf("Correct\n");
-			// 	} else {
-			// 		printf("Incorrect\n");
-			// 	}
-			// 	printf("Input off by %d ms\n", pSharedInput->inputTimestamp);
-			// 	pSharedInput->newResponse = false;
-			// }
-
 			if(wiiuse_poll(wiimotes, MAX_WIIMOTES) == 0) {
 				continue;
 			}
@@ -149,11 +139,11 @@ static unsigned char handle_event(struct wiimote_t* wm)
 		/* guitar hero 3 guitar */
 		struct guitar_hero_3_t* gh3 = (guitar_hero_3_t*)&wm->exp.gh3;
 
-		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_STRUM_UP)) {
+		if (IS_JUST_PRESSED(gh3, GUITAR_HERO_3_BUTTON_STRUM_UP)) {
 			printf("Guitar: Strum Up pressed\n");
 			input |= STRUM_MASK;
 		}
-		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_STRUM_DOWN))	{
+		if (IS_JUST_PRESSED(gh3, GUITAR_HERO_3_BUTTON_STRUM_DOWN))	{
 			printf("Guitar: Strum Down pressed\n");
 			input |= STRUM_MASK;
 		}
@@ -177,7 +167,7 @@ static unsigned char handle_event(struct wiimote_t* wm)
 			printf("Guitar: Orange pressed\n");
 			input |= ORANGE_MASK;
 		}
-		if (IS_PRESSED(gh3, GUITAR_HERO_3_BUTTON_PLUS)) {
+		if (IS_JUST_PRESSED(gh3, GUITAR_HERO_3_BUTTON_PLUS)) {
 			printf("Guitar: Plus pressed\n");
 			input |= START_MASK;
 		}

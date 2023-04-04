@@ -43,8 +43,10 @@ typedef struct {
 } sharedInputStruct_t;
 
 typedef struct {
+    int32_t timeDifference;
     bool noteHit;
     bool newResponse;
+    bool songStarting;
 } sharedResponseStruct_t;
 
 // WARNING:
@@ -61,6 +63,7 @@ typedef struct {
 } note_t;
 
 typedef struct {
+    uint64_t p1; //padding
     uint32_t totalNotes;
     note_t notes[100];
 } beatmap_t;
