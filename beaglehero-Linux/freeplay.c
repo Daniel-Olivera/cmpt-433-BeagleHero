@@ -16,12 +16,13 @@ bool stopping = false;
 void freeplay_start(void)
 {
     volatile void *pPruBase = PRU_getPruMmapAddr();
-	volatile sharedInputStruct_t *pSharedInput = PRU0_MEM_FROM_BASE(pPruBase);
+    volatile sharedInputStruct_t *pSharedInput = PRU0_MEM_FROM_BASE(pPruBase);
     Buzzer_configurePin(BUZZER_COMMAND);
     Buzzer_start();
     pSharedInput->input = 0;
     unsigned char input;
     while(!stopping){
+ 
         input = pSharedInput->input;
 
         if((input == MINUS_MASK)){

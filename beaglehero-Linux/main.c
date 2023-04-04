@@ -12,6 +12,8 @@ int main(int argc, char *args[])
     // while(true){}
     freeplay_start();
 
+    printf("CLEANING UP\n")
+
     Guitar_cleanup();
     Beatmap_cleanup();
 }
