@@ -84,7 +84,8 @@ void main(void)
             bool correctNoteHit = (inputCopy == pBeatmap->notes[currentNote].input);
             
             pSharedResponse->noteHit = correctNoteHit && timingWindowHit;
-            pSharedResponse->timeDifference = pBeatmap->notes[currentNote].input;
+            // pSharedResponse->timeDifference = pBeatmap->notes[currentNote].input;
+            pSharedResponse->currentNoteIndex = currentNote;
             pSharedResponse->newResponseCombo = true;
             pSharedResponse->noteAttemptedLED = true;
 
@@ -93,8 +94,9 @@ void main(void)
 
         if(msSinceStart > pBeatmap->notes[currentNote].timestamp + NOTE_WINDOW_MS &&
            pSharedInputStruct->songPlaying) {
+            pSharedResponse->currentNoteIndex = currentNote;
             pSharedResponse->noteHit = false;
-            pSharedResponse->timeDifference = pBeatmap->notes[currentNote].input;
+            // pSharedResponse->timeDifference = pBeatmap->notes[currentNote].input;
             pSharedResponse->newResponseCombo = true;
 
             iterateNote();

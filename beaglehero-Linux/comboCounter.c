@@ -6,6 +6,7 @@
 #include "include/memoryShare.h"
 #include "include/sharedStructs.h"
 #include "include/i2cDisplay.h"
+#include "include/buzzer.h"
 
 // volatile void *pPruBase;
 // volatile sharedResponseStruct_t *pResponse;
@@ -41,11 +42,13 @@ static void *comboThreadMain(void *args)
     while(!thread_shutdown) {
         if(pResponse->newResponseCombo) {
         	if(pResponse->noteHit) {
+                Buzzer_playNoteAtIndex(pResponse->currentNoteIndex);
                 combo += 1;
-        		printf("Correct, %dx combo! Input = %d\n", combo, pResponse->timeDifference);
+        		printf("Correct, %dx combo! Input = %d\n", combo, pResponse->currentNoteIndex);
         	} else {
+                Buzzer_playNote("F#",3,0.2);
                 combo = 0;
-        		printf("Incorrect, %dx combo! Input = %d\n", combo, pResponse->timeDifference);
+        		printf("Incorrect, %dx combo! Input = %d\n", combo, pResponse->currentNoteIndex);
         	}
             Display_updateInteger(combo);
             

@@ -39,6 +39,7 @@ static pthread_t thread;
 static double noteDuration = 0;
 static pthread_mutex_t buzzMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t buzzCond = PTHREAD_COND_INITIALIZER;
+static Song* twinkle;
 
 static void sleepForMs(long long delayInMs){
     const long long NS_PER_MS = 1000 * 1000;
@@ -146,6 +147,7 @@ void *buzzer_function(void *args){
 }
 
 void Buzzer_start(void){
+    twinkle = midiParser_readMidi("midi-files/twinkleDouble.MID");
     pthread_create(&thread, NULL, buzzer_function, NULL);
     Buzzer_configure(BUZZER_DUTY_CYCLE, "0");
 }
@@ -161,6 +163,19 @@ void Buzzer_playNote(char *note, int octave, double duration){
     char *period = note_period_frequencies[convert_note][octave];
     char *duty_cycle = note_duty_frequencies[convert_note][octave];
     noteDuration = duration * 1000;
+    
+    Buzzer_configure(BUZZER_DUTY_CYCLE, "0");
+    Buzzer_configure(BUZZER_PERIOD, period);
+    Buzzer_configure(BUZZER_DUTY_CYCLE, duty_cycle);
+    pthread_cond_signal(&buzzCond);
+}
+
+void Buzzer_playNoteAtIndex(int index){
+    Note note = twinkle->notes[index];
+    int convert_note = int_from_note(note.note);
+    char *period = note_period_frequencies[convert_note][note.octave];
+    char *duty_cycle = note_duty_frequencies[convert_note][note.octave];
+    noteDuration = twinkle->note_durations[index] * 1000;
     
     Buzzer_configure(BUZZER_DUTY_CYCLE, "0");
     Buzzer_configure(BUZZER_PERIOD, period);

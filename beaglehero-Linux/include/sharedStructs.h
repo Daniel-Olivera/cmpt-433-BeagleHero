@@ -46,7 +46,7 @@ typedef struct {
 } sharedInputStruct_t;
 
 typedef struct {
-    int32_t timeDifference;
+    int32_t currentNoteIndex;
     bool noteHit;
     bool newResponseCombo;
     bool songStarting;

@@ -14,6 +14,8 @@ void Buzzer_configurePin(char *command);
 
 // Plays a note from the buzzer 
 void Buzzer_playNote(char *note, int octave, double duration);
+void Buzzer_playNoteAtIndex(int index);
+
 
 // Start and stop the buzzer thread 
 void Buzzer_start(void);
