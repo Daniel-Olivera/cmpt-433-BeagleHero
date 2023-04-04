@@ -5,7 +5,9 @@
         "stdint.h": "c",
         "sharedinputstruct.h": "c",
         "stdbool.h": "c",
-        "sharedstructs.h": "c"
+        "sharedstructs.h": "c",
+        "i2ccontroller.h": "c",
+        "i2cdisplay.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

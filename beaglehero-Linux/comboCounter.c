@@ -5,6 +5,7 @@
 
 #include "include/memoryShare.h"
 #include "include/sharedStructs.h"
+#include "include/i2cDisplay.h"
 
 // volatile void *pPruBase;
 // volatile sharedResponseStruct_t *pResponse;
@@ -38,15 +39,18 @@ static void *comboThreadMain(void *args)
         if(pResponse->newResponse) {
         	if(pResponse->noteHit) {
                 combo += 1;
-        		printf("Correct, %dx combo!\n", combo);
+        		printf("Correct, %dx combo! Input = %d\n", combo, pResponse->timeDifference);
         	} else {
                 combo = 0;
-        		printf("Incorrect, %dx combo!\n", combo);
+        		printf("Incorrect, %dx combo! Input = %d\n", combo, pResponse->timeDifference);
         	}
+            Display_updateInteger(combo);
+            
         	pResponse->newResponse = false;
         }
         if(pResponse->songStarting) {
             combo = 0;
+            Display_updateInteger(combo);
             pResponse->songStarting = false;
         }
     }

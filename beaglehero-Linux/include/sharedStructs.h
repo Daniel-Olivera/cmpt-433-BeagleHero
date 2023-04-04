@@ -63,6 +63,7 @@ typedef struct {
 } note_t;
 
 typedef struct {
+    uint64_t p1; //padding
     uint32_t totalNotes;
     note_t notes[100];
 } beatmap_t;
