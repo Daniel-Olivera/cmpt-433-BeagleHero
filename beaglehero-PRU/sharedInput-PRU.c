@@ -2,8 +2,7 @@
 #include <stdbool.h>
 #include <pru_cfg.h>
 #include "resource_table_empty.h"
-#include "../beaglehero-Linux/include/sharedInputStruct.h"
-#include "../beaglehero-Linux/include/timing.h"
+#include "../beaglehero-Linux/include/sharedStructs.h"
 
 // Reference for shared RAM:
 // https://markayoder.github.io/PRUCookbook/05blocks/blocks.html#_controlling_the_pwm_frequency
@@ -29,59 +28,88 @@ volatile register uint32_t __R31; // input GPIO register
 
 #define CYCLES_PER_MS 200000
 
+#define NOTE_WINDOW_MS 30 // both + and -, so this gives a window twice this wide
+
 // This works for both PRU0 and PRU1 as both map their own memory to 0x0000000
 volatile sharedInputStruct_t *pSharedInputStruct =
     (volatile void *)THIS_PRU_DRAM_USABLE;
 
+uint32_t currentNote = 0;
+uint32_t msSinceStart = 0;
+
+volatile sharedResponseStruct_t *pSharedResponse =
+    (volatile void *)PRU_SHAREDMEM;
+
 volatile beatmap_t *pBeatmap = 
     (volatile void *)PRU_SHAREDMEM;
 
-uint32_t msSinceStart = 0;
+static void iterateNote(void);
 
 void main(void)
 {
     // Initialize:
     // pSharedInputStruct->songBeginning = 0;
-    pSharedInputStruct->inputTimestamp = 0;
+    // pSharedInputStruct->inputTimestamp = 0;
     pSharedInputStruct->songPlaying = false;
     pSharedInputStruct->input = 0x00;
     pSharedInputStruct->newInput = false;
-    pSharedInputStruct->noteHit = false;
-    pSharedInputStruct->newResponse = false;
+    pSharedResponse->noteHit = false;
+    pSharedResponse->newResponse = false;
+    pSharedResponse->songStarting = false;
+    pBeatmap->totalNotes = 0;
 
     while (true) {
         
 
         if(pSharedInputStruct->newInput) {
+            unsigned char inputCopy = pSharedInputStruct->input;
+            pSharedInputStruct->newInput = false;
+
             if(!pSharedInputStruct->songPlaying
-                && (pSharedInputStruct->input & START_MASK) != 0) {
+                && (inputCopy & START_MASK) != 0) {
                     pSharedInputStruct->songPlaying = true;
+                    pSharedResponse->songStarting = true;
                     msSinceStart = 0;
+                    currentNote = 0;
                     continue;
             }
 
             if(!pSharedInputStruct->songPlaying) continue;
 
-            
+            uint32_t targetTime = pBeatmap->notes[currentNote].timestamp;
+            bool timingWindowHit = (targetTime - NOTE_WINDOW_MS <= msSinceStart &&
+                                    msSinceStart <= targetTime + NOTE_WINDOW_MS);
 
-            if(pSharedInputStruct->input == pBeatmap->notes[0].input) {
-                pSharedInputStruct->inputTimestamp = (int32_t)pBeatmap->notes[0].timestamp - (int32_t)msSinceStart;
-                pSharedInputStruct->noteHit = true;
-                pSharedInputStruct->newResponse = true;
-            } else {
-                pSharedInputStruct->inputTimestamp = (int32_t)pBeatmap->notes[0].timestamp - (int32_t)msSinceStart;
-                pSharedInputStruct->noteHit = false;
-                pSharedInputStruct->newResponse = true;
-            }
+            bool correctNoteHit = (inputCopy == pBeatmap->notes[currentNote].input);
             
-            __R30 ^= DIGIT_ON_OFF_MASK;
-            pSharedInputStruct->newInput = false;
+            pSharedResponse->noteHit = correctNoteHit && timingWindowHit;
+            pSharedResponse->timeDifference = pBeatmap->notes[currentNote].input;
+            pSharedResponse->newResponse = true;
+
+            iterateNote();
+        }
+
+        if(msSinceStart > pBeatmap->notes[currentNote].timestamp + NOTE_WINDOW_MS &&
+           pSharedInputStruct->songPlaying) {
+            pSharedResponse->noteHit = false;
+            pSharedResponse->timeDifference = pBeatmap->notes[currentNote].input;
+            pSharedResponse->newResponse = true;
+
+            iterateNote();
         }
 
         msSinceStart += 1;
         __delay_cycles(CYCLES_PER_MS);
         
-    // // Sample button state to shared memory
-    // pSharedMemStruct->isButtonPressed = (__R31 & JOYSTICK_RIGHT_MASK) != 0;
+    }
+}
+
+static void iterateNote(void)
+{
+    currentNote += 1;
+
+    if(currentNote >= pBeatmap->totalNotes) {
+        // currentNote = 0;
+        pSharedInputStruct->songPlaying = false;
     }
 }

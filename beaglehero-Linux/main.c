@@ -1,15 +1,21 @@
 #include <stdbool.h>
 
-#include "include/guitar.h"
+#include "include/i2cDisplay.h"
+#include "include/comboCounter.h"
 #include "include/beatmap.h"
+#include "include/guitar.h"
 
 int main(int argc, char *args[])
 {
-    Beatmap_init();
+    Display_init();
+    Combo_init();
+    Beatmap_init("beatmaps/test.csv");
     Guitar_init();
 
     while(true){}
 
     Guitar_cleanup();
     Beatmap_cleanup();
+    Combo_cleanup();
+    Display_cleanup();
 }

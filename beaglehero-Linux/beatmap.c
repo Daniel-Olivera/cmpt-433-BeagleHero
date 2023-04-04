@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include "include/memoryShare.h"
-#include "include/sharedInputStruct.h"
+#include "include/sharedStructs.h"
 
 #define READ_BUFFER_SIZE 100
 
@@ -13,7 +13,7 @@ static bool beatmapLoaded = false;
 volatile void *pPruBase;
 volatile beatmap_t *pBeatmap;
 
-void Beatmap_init(void)
+void Beatmap_init(char *filename)
 {
     if(beatmapLoaded) {
         printf("The beatmap is already loaded.\n");
@@ -23,25 +23,37 @@ void Beatmap_init(void)
     pPruBase = PRU_getPruMmapAddr();
 	pBeatmap = PRUSHARED_MEM_FROM_BASE(pPruBase);
     
-    FILE *fileToRead = fopen("beatmaps/test.csv", "r");
+    FILE *fileToRead = fopen(filename, "r");
     char buffer[READ_BUFFER_SIZE];
 
     if (fileToRead == NULL) {
-        printf("ERROR OPENING %s.", "test.csv");
+        printf("ERROR OPENING %s.", filename);
         exit(1);
     }
 
-    pBeatmap->totalNotes =+ 0;
+    uint32_t totalNotes = 0;
     while (fgets(buffer, READ_BUFFER_SIZE, fileToRead) != NULL) {
         printf("%s\n", buffer);
         char *input = strtok(buffer, ",");
-        pBeatmap->notes[0].input = atoi(input);
+        pBeatmap->notes[totalNotes].input = atoi(input);
 
-        input = strtok(buffer, ",");
-        pBeatmap->notes[0].timestamp = atol(input);
+        input = strtok(0, ",");
+        pBeatmap->notes[totalNotes].timestamp = atol(input);
 
-        pBeatmap->totalNotes =+ 1;
+        if(pBeatmap->notes[totalNotes].input == 0
+        || pBeatmap->notes[totalNotes].timestamp == 0) {
+            printf("ERROR in %s, beatmap could not be read.", filename);
+            exit(1);
+        }
+
+        totalNotes += 1;
     }
+
+    pBeatmap->totalNotes = totalNotes;
+    printf("Total notes: %d\n", pBeatmap->totalNotes);
+    // for(int i = 0; i < totalNotes; i++) {
+    //     printf("Input %d: %x, time: %d\n", i, pBeatmap->notes[i].input, pBeatmap->notes[i].timestamp);
+    // }
 
     fclose(fileToRead);
 }

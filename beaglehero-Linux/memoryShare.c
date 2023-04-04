@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 
-#include "include/sharedInputStruct.h"
+#include "include/sharedStructs.h"
 
 // General PRU Memomry Sharing Routine
 // ----------------------------------------------------------------
