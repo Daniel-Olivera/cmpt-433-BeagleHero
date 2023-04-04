@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 
 #include "include/timing.h"
 
 #define UNEXPORT_FILE "/sys/class/gpio/unexport"
+#define GPIO_DIR "/sys/class/gpio/gpio"
 #define EXPORT_FILE "/sys/class/gpio/export"
 #define EXPORT_WAIT 300
 
@@ -43,16 +45,25 @@ void File_readFile(char* filename, char* buffer, int bufferSize)
 void File_exportPin(char* pinName)
 {
 
-    FILE *unexportFile = fopen(UNEXPORT_FILE, "w");
+    // FILE *unexportFile = fopen(UNEXPORT_FILE, "w");
 
-    if (unexportFile == NULL) {
-        printf("ERROR OPENING %s.", UNEXPORT_FILE);
-        exit(1);
+    // if (unexportFile == NULL) {
+    //     printf("ERROR OPENING %s.", UNEXPORT_FILE);
+    //     exit(1);
+    // }
+
+    // fprintf(unexportFile, pinName);
+    // fclose(unexportFile);
+
+    char directoryName[100] = GPIO_DIR;
+    strcat(directoryName, pinName);
+    DIR *directory = opendir(directoryName);
+    
+    if(directory != NULL) {
+        closedir(directory);
+        return;
     }
 
-    fprintf(unexportFile, pinName);
-    fclose(unexportFile);
-    
     //add a check for if the pin is already exported
     FILE *fileToWrite = fopen(EXPORT_FILE, "w");
 

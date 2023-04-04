@@ -35,6 +35,9 @@ static void *comboThreadMain(void *args)
 
     volatile sharedResponseStruct_t *pResponse = PRUSHARED_MEM_FROM_BASE(pPruBase);
 
+    pResponse->newResponse = false;
+    Display_updateInteger(combo);
+
     while(!thread_shutdown) {
         if(pResponse->newResponse) {
         	if(pResponse->noteHit) {
