@@ -74,6 +74,7 @@ static void *guitarThreadMain(void *args)
 						|| (input & MINUS_MASK) != 0) {
 						pSharedInput->input = input;
 						pSharedInput->newInput = true;
+						pSharedInput->freeplayInput = true;
 					}
 					
 					break;

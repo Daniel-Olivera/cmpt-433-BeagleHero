@@ -42,6 +42,7 @@ typedef struct {
     bool songPlaying;
     unsigned char input;
     bool newInput;
+    bool freeplayInput;
 } sharedInputStruct_t;
 
 typedef struct {
