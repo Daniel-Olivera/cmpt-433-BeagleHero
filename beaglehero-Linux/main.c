@@ -4,6 +4,7 @@
 #include "include/comboCounter.h"
 #include "include/beatmap.h"
 #include "include/guitar.h"
+#include "include/freeplay.h"
 
 int main(int argc, char *args[])
 {
@@ -12,7 +13,8 @@ int main(int argc, char *args[])
     Beatmap_init("beatmaps/test.csv");
     Guitar_init();
 
-    while(true){}
+    // while(true){}
+    freeplay_start();
 
     Guitar_cleanup();
     Beatmap_cleanup();

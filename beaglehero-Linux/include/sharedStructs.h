@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#define MINUS_BIT   7
 #define START_BIT   6
 
 #define STRUM_BIT   5
@@ -13,6 +14,7 @@
 #define BLUE_BIT    1
 #define ORANGE_BIT  0
 
+#define MINUS_MASK  (1 << MINUS_BIT)
 #define START_MASK  (1 << START_BIT)
 
 #define STRUM_MASK  (1 << STRUM_BIT)

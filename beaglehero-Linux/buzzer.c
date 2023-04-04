@@ -1,5 +1,5 @@
-#include "buzzer.h"
-#include "midiParser.h"
+#include "include/buzzer.h"
+#include "include/midiParser.h"
 #include <stdlib.h>
 #include <time.h>
 #include <pthread.h>
