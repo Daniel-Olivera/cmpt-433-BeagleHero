@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <pru_cfg.h>
 #include "resource_table_empty.h"
+#include "../beaglehero-Linux/include/sharedStructs.h"
 
 
 #define STR_LEN         64      // # LEDs in our string
@@ -23,6 +24,10 @@
 #define YELLOW (Color(63,37,0))
 
 #define DATA_PIN 15       // Bit number to output on
+
+#define PRU_SHAREDMEM 0x10000 
+
+#define NOTE_WINDOW_MS 30
 
 volatile register uint32_t __R30;
 
@@ -51,9 +56,7 @@ void setLED(uint32_t colour){
 }
 
 void setLedByArray(unsigned int* array){
-
     uint32_t colours[5] = {GREEN,RED,YELLOW,BLUE,ORANGE};
-
     for(int i= 0; i < 8; i++){
         for(int j = 7; j >= 0; j--){
             if(array[i] & (0b1 << j)){
@@ -70,10 +73,9 @@ void setLedByArray(unsigned int* array){
 } 
 
 void shiftBinary(unsigned int* binary){
-    *binary = *binary << 1;
+    *binary <<= 1;
     return;
 }
-
 
 void turnOnAll(void){
     for(int j = 0; j < 64; j++) {

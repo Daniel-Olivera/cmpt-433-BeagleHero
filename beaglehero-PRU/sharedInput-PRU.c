@@ -58,7 +58,7 @@ void main(void)
     pSharedResponse->songStarting = false;
     pBeatmap->totalNotes = 0;
 
-    while (true) {
+    while (true){
         
 
         if(pSharedInputStruct->newInput) {
