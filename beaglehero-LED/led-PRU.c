@@ -113,11 +113,11 @@ void main(void)
             unsigned char newNote = pBeatmap->notes[newNote_index].input;
 
             if((newNote & GREEN_MASK) != 0){
-                grid[4] += 1;
+                grid[0] += 1;
             }
 
             if((newNote & RED_MASK) != 0){
-                grid[3] += 1;
+                grid[1] += 1;
             }
 
             if((newNote & YELLOW_MASK) != 0){
@@ -125,11 +125,11 @@ void main(void)
             }
 
             if((newNote & BLUE_MASK) != 0){
-                grid[1] += 1;
+                grid[3] += 1;
             }
 
             if((newNote & ORANGE_MASK) != 0){
-                grid[0] += 1;
+                grid[4] += 1;
             }
 
             uint32_t currNoteTimeStamp = pBeatmap->notes[newNote_index].timestamp;
@@ -146,11 +146,11 @@ void main(void)
             char targetNote = pBeatmap->notes[targetNote_index].input;
 
             if((targetNote & GREEN_MASK) != 0){
-                grid[4] &= ~(1111 << 4);
+                grid[0] &= ~(1111 << 4);
             }
 
             if((targetNote & RED_MASK) != 0){
-                grid[3] &= ~(1111 << 4);
+                grid[1] &= ~(1111 << 4);
             }
 
             if((targetNote & YELLOW_MASK) != 0){
@@ -158,11 +158,11 @@ void main(void)
             }
 
             if((targetNote & BLUE_MASK) != 0){
-                grid[1] &= ~(1111 << 4);
+                grid[3] &= ~(1111 << 4);
             }
 
             if((targetNote & ORANGE_MASK) != 0){
-                grid[0] &= ~(1111 << 4);
+                grid[4] &= ~(1111 << 4);
             }
             targetNote_index += 1;
             pSharedResponse->noteAttemptedLED = false;
@@ -232,7 +232,7 @@ void setLED(uint32_t colour){
 
 // Set the entire grid/array of LEDs based on the corresponding colours and provided matrix
 void setLedByArray(unsigned int* array){
-    uint32_t colours[5] = {ORANGE,BLUE,YELLOW,RED,GREEN};
+    uint32_t colours[5] = {GREEN,RED,YELLOW,BLUE,ORANGE};
     for(int i= 0; i < 8; i++){
         for(int j = 7; j >= 0; j--){
             if(array[i] & (0b1 << j)){
