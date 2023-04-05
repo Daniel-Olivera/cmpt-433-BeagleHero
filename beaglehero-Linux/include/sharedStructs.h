@@ -46,11 +46,13 @@ typedef struct {
 } sharedInputStruct_t;
 
 typedef struct {
-    int32_t currentNoteIndex;
+    uint16_t currentNoteIndex;
+    unsigned char _p1;
     bool noteHit;
     bool newResponseCombo;
-    bool songStarting;
     bool noteAttemptedLED;
+    bool songStarting;
+    bool songPlaying;
 } sharedResponseStruct_t;
 
 // WARNING:

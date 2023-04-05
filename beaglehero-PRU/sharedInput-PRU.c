@@ -29,12 +29,13 @@ volatile register uint32_t __R31; // input GPIO register
 #define CYCLES_PER_MS 200000
 
 #define NOTE_WINDOW_MS 30 // both + and -, so this gives a window twice this wide
+#define MAXIMUM_NOTE_WINDOW 500 //the maximum ms a note can be missed by. if you're further than this from the next note, it wont register
 
 // This works for both PRU0 and PRU1 as both map their own memory to 0x0000000
 volatile sharedInputStruct_t *pSharedInputStruct =
     (volatile void *)THIS_PRU_DRAM_USABLE;
 
-uint32_t currentNote = 0;
+uint16_t currentNote = 0;
 uint32_t msSinceStart = 0;
 
 volatile sharedResponseStruct_t *pSharedResponse =
@@ -53,6 +54,7 @@ void main(void)
     pSharedInputStruct->songPlaying = false;
     pSharedInputStruct->input = 0x00;
     pSharedInputStruct->newInput = false;
+    pSharedResponse->songPlaying = false;
     pSharedResponse->noteHit = false;
     pSharedResponse->newResponseCombo = false;
     pSharedResponse->songStarting = false;
@@ -61,7 +63,6 @@ void main(void)
 
     while (true) {
         
-
         if(pSharedInputStruct->newInput) {
             unsigned char inputCopy = pSharedInputStruct->input;
             pSharedInputStruct->newInput = false;
@@ -70,6 +71,7 @@ void main(void)
                 && (inputCopy & START_MASK) != 0) {
                     pSharedInputStruct->songPlaying = true;
                     pSharedResponse->songStarting = true;
+                    pSharedResponse->songPlaying = true;
                     msSinceStart = 0;
                     currentNote = 0;
                     continue;
@@ -78,6 +80,9 @@ void main(void)
             if(!pSharedInputStruct->songPlaying) continue;
 
             uint32_t targetTime = pBeatmap->notes[currentNote].timestamp;
+
+            bool withinMaximumNoteWindow = msSinceStart >= targetTime - MAXIMUM_NOTE_WINDOW;
+
             bool timingWindowHit = (targetTime - NOTE_WINDOW_MS <= msSinceStart &&
                                     msSinceStart <= targetTime + NOTE_WINDOW_MS);
 
@@ -86,10 +91,12 @@ void main(void)
             pSharedResponse->noteHit = correctNoteHit && timingWindowHit;
             // pSharedResponse->timeDifference = pBeatmap->notes[currentNote].input;
             pSharedResponse->currentNoteIndex = currentNote;
-            pSharedResponse->newResponseCombo = true;
-            pSharedResponse->noteAttemptedLED = true;
+            pSharedResponse->newResponseCombo = withinMaximumNoteWindow;
+            pSharedResponse->noteAttemptedLED = withinMaximumNoteWindow;
 
-            iterateNote();
+            if(withinMaximumNoteWindow) {
+                iterateNote();
+            }
         }
 
         if(msSinceStart > pBeatmap->notes[currentNote].timestamp + NOTE_WINDOW_MS &&
@@ -115,5 +122,6 @@ static void iterateNote(void)
     if(currentNote >= pBeatmap->totalNotes) {
         // currentNote = 0;
         pSharedInputStruct->songPlaying = false;
+        pSharedResponse->songPlaying = false;
     }
 }
