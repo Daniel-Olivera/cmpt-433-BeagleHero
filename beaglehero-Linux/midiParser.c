@@ -1,4 +1,4 @@
-#include "midiParser.h"
+#include "include/midiParser.h"
 
 /*
     Loading the midi file and reading events is taken from the github page
