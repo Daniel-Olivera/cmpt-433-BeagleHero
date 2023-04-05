@@ -46,7 +46,8 @@ static void *comboThreadMain(void *args)
                 combo += 1;
         		printf("Correct, %dx combo! Input = %d\n", combo, pResponse->currentNoteIndex);
         	} else {
-                Buzzer_playNote("F#",3,0.2);
+                Buzzer_playNoteAtIndex(pResponse->currentNoteIndex);
+                // Buzzer_playNote("F#",3,0.2);
                 combo = 0;
         		printf("Incorrect, %dx combo! Input = %d\n", combo, pResponse->currentNoteIndex);
         	}
