@@ -30,7 +30,7 @@ void freeplay_start(void)
         if(pSharedInput->freeplayInput)
             input = pSharedInput->input;
 
-
+        
         if((input & STRUM_MASK) != 0){
             switch (input)
             {
