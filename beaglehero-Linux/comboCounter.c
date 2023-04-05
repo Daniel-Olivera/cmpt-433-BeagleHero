@@ -44,7 +44,7 @@ static void *comboThreadMain(void *args)
         	if(pResponse->noteHit) {
                 Buzzer_playNoteAtIndex(pResponse->currentNoteIndex);
                 combo += 1;
-        		printf("Correct, %dx combo! Input = %d\n", combo, pResponse->currentNoteIndex);
+        		printf("Correct!, %dx combo! Input = %d\n", combo, pResponse->currentNoteIndex);
         	} else {
                 Buzzer_playNote("F#",3,0.2);
                 combo = 0;
