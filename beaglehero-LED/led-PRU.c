@@ -16,14 +16,15 @@ volatile register uint32_t __R30;
 #define oneCyclesOff    800/5
 #define zeroCyclesOn    350/5
 #define zeroCyclesOff   600/5
-#define cleanupCycles     60000/5 // Must be at least 50u, use 60u
+#define cleanupCycles   60000/5 // Must be at least 50u, use 60u
 
 // Delay is calculated by beat intervals vs LED spacing
 // (beatATimeStamp - beatBTimeStamp)/number of desired LED spacing
-#define cyclesPerLoop 200000000/5
+#define cyclesPerLoop 200000
 
 #define updateCycle 1
 
+#define PRU_SHAREDMEM 0x10000 // Offset to shared memory
 
 // Reference for bit shifted RGB Colour Macros: 
 // https://os.mbed.com/components/NeoPixel-NeoMatrix-8x8/ 
@@ -34,9 +35,9 @@ volatile register uint32_t __R30;
 #define ORANGE (Color(63,12,0))
 #define YELLOW (Color(63,37,0))
 
-// GPIO Input: P8_11 = pru0_pru_r30_15
+// GPIO Input: P8_41 = pru1_pru_r30_4
 // Drives the LED Matrix
-#define DATA_PIN 15       
+#define DATA_PIN 4      
 
 volatile sharedResponseStruct_t *pSharedResponse =
     (volatile void *)PRU_SHAREDMEM;
@@ -62,7 +63,9 @@ static void turnAllOff(void);
 
 static unsigned int* initLedGrid();
 
-static void cleanUp(unsigned int* grid);
+// static void cleanUp(unsigned int* grid);
+
+static void turnAllOn(uint32_t colour);
 
 void main(void)
 {
@@ -72,47 +75,125 @@ void main(void)
     unsigned int* grid = initLedGrid();
     pSharedResponse->noteHit = false;
     pSharedResponse->newResponseCombo = false;
-    pSharedResponse->songStarting = false;
+    // pSharedResponse->songStarting = false;
     pSharedResponse->noteAttemptedLED = false;
     pBeatmap->totalNotes = 0;
     
+    //nextNote change to 
+    uint32_t nextNoteTimeStamp= pBeatmap->notes[newNote_index].timestamp;
+    uint32_t timeStampOffset = 1000;
 
-    uint32_t nextNoteTimeStamp= pBeatmap->notes[currentNote].timestamp;
-    uint32_t timeStampOffset = pBeatmap->notes[currentNote].timestamp;
+    uint16_t colourMaskArray[5] = {ORANGE_MASK,BLUE_MASK,YELLOW_MASK,RED_MASK,GREEN_MASK};
+    bool flag = false;
+    bool test = false;
     while(true){
 
-        if(!pSharedResponse->songStarting) continue;
-        
+    
+        if(!pSharedResponse->songStarting){
+            if(!flag){
+                grid[0] += 1; 
+                flag = true;
+            }
+            else{
+                flag = false;
+            }
+        }
+        else if(pSharedResponse->songStarting){
+            if(!test){
+                grid[1] += 1; 
+                test = true;
+            }
+            else{
+                test = false;
+            }
+        }
+        // else{
+        //     if(!test){
+        //         grid[2] += 1; 
+        //         test = true;
+        //     }
+        //     else{
+        //         test = false;
+        //     }
+        // }
+        // else if(!pSharedResponse->songStarting && wentIn){
+        //     grid[1] += 1;
+        // }
+        // else if(!pSharedResponse->songStarting){
+        //     continue;
+        // }
+
+        // grid[0] += 1;
+
+        // turnAllOff();
+
+        // grid[0] += 1;
+
+        // If the timeSinceStart + Offset is larger than or equal to the timestamp of the next note,
+        // get the input bit of the newNote and set the bit in the corresponding row based on the input bit colour
+        // if(timeSinceStart + timeStampOffset >= nextNoteTimeStamp){
+        //     unsigned char newNote = pBeatmap->notes[newNote_index].input;
+        //     // unsigned char newNote = 48;
+
+        //     // turnAllOn(BLUE);
+
+        //     if((newNote & GREEN_MASK) != 0){
+        //         grid[4] += 1;
+        //     }
+
+        //     if((newNote & RED_MASK) != 0){
+        //         grid[3] += 1;
+        //     }
+
+        //     if((newNote & YELLOW_MASK) != 0){
+        //         grid[2] += 1;
+        //     }
+
+        //     if((newNote & BLUE_MASK) != 0){
+        //         grid[1] += 1;
+        //     }
+
+        //     if((newNote & ORANGE_MASK) != 0){
+        //         grid[0] += 1;
+        //     }
+
+
+        //     // for(int i = 0; i < 5; i++){
+        //     //     if ((newNote & colourMaskArray[i] != 0)){
+        //     //         grid[i] += 1;
+        //     //     }
+        //     // }
+
+        //     newNote_index += 1;
+        //     nextNoteTimeStamp = pBeatmap->notes[newNote_index].timestamp;
+        //     // setLedByArray(grid);
+        // }
+
+        // If note was hit, turn off the MSB of the binary literal and update the grid and continue with no delay
+        // if(pSharedResponse->noteAttemptedLED){
+        //     char targetNote = pBeatmap->notes[targetNote_index].input;
+
+        //     for(int i = 0; i < 5; i++){
+        //         if ((targetNote && colourMaskArray[i] != 0)){
+        //             grid[i] &= ~(1 << 7);
+        //         }
+        //     }
+        //     setLedByArray(grid);
+        //     targetNote_index += 1;
+        //     pSharedResponse->noteAttemptedLED = false;
+        //     __delay_cycles(1);
+        // }
+
         setLedByArray(grid);
         for(int i = 0; i < 5; i++){
             grid[i] <<= 1;
         }
 
-        // If the timeSinceStart + Offset is larger than or equal to the timestamp of the next note,
-        // get the input bit of the newNote and set the bit in the corresponding row based on the input bit colour
-        if((timeSinceStart/1000) + timeStampOffset >= nextNoteTimeStamp){
-            char newNote = pBeatmap->notes.[newNote_index]->input;
-            grid[(int)newNote] += 1;
-            newNote_index += 1;
-            nextNoteTimeStamp = pBeatmap->notes.[newNote_index]->timestamp;
-            setLedByArray(grid);
-        }
-
-        // If note was hit, turn off the MSB of the binary literal and update the grid and continue with no delay
-        if(pSharedResponse->noteAttemptedLED){
-            char targetNote = pBeatmap->notes.[targetNote_index]->input;
-            grid[(int)newNote] &= ~(1 << 7);
-            setLedByArray(grid);
-            pSharedResponse->noteAttemptedLED = false;
-            __delay_cycles(1)
-        }
-
-        timeSinceStart += cyclesPerLoop;
-        __delay_cycles(cyclesPerLoop);
+        timeSinceStart += 125;
+        __delay_cycles(cyclesPerLoop*125);
     }
 
-    // turnAllOff();
-    cleanUp(grid);
+    // cleanUp(grid);
 }
 
 
@@ -169,6 +250,19 @@ void turnAllOff(void){
     } 
 }
 
+void turnAllOn(uint32_t colour){
+    for(int j = 0; j < 64; j++) {
+        for(int i = 23; i >= 0; i--) {
+            if(colour & (0x1 << i)){
+                turnBitOn();
+            }
+            else{
+                turnBitOff();
+            }
+        }
+    } 
+}
+
 
 // Reference for idea of using binary literal: 
 // https://stackoverflow.com/questions/2611764/can-i-use-a-binary-literal-in-c-or-c 
@@ -190,7 +284,7 @@ unsigned int* initLedGrid(){
 // Cleans up the PRU pins as well as clearing any dynamically allocated memory
 void cleanUp(unsigned int* grid)
 {
-    turnAllOff();
+    // turnAllOff();
     free(grid);
     // Send Reset
     __R30 &= ~(0x1<<DATA_PIN);   // Clear the GPIO pin
