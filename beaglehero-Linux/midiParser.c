@@ -38,62 +38,55 @@ Song* midiParser_readMidi(char* filepath)
 	int octv = 0;
 	char songNote[5];
   	while ((event = smf_get_next_event(smf)) != NULL) {
- 		if (smf_event_is_metadata(event))
- 			continue;
+        if (smf_event_is_metadata(event))
+        	continue;
   
-		char* eventBuffer = smf_event_decode(event);
+        char* eventBuffer = smf_event_decode(event);
 
-		int tokenIndex = 0;
-		char* token = strtok(eventBuffer, ", ");
+        int tokenIndex = 0;
+        char* token = strtok(eventBuffer, ", ");
 
         // Splitting the event string into useful bits
-		while (token != NULL) {
-			tokens[tokenIndex] = token;
-			tokenIndex++;
-			token = strtok(NULL, ", ");
-    	}
+        while (token != NULL) {
+            tokens[tokenIndex] = token;
+            tokenIndex++;
+            token = strtok(NULL, ", ");
+        }
 
         // If the event does not contain information about a note, skip it
-		if(strcmp(tokens[0], "Note")){
-			continue;
-		}
+        if(strcmp(tokens[0], "Note")){
+            continue;
+        }
 
         // A note time being "active" is when the note starts
-		if(strcmp(tokens[1], "On") == 0){
-			song->notes[song->size].active = true;
-		}
+        if(strcmp(tokens[1], "On") == 0){
+            song->notes[song->size].active = true;
+
+            char *noteStore = malloc(sizeof(char) * 2);
+            // Reference from smf_decode.c https://libsmf.sourceforge.net/api/
+            note_from_int(songNote, event->midi_buffer[1]);
+            sscanf(songNote, "%s %d", noteStore, &octv);
+
+            // Places the note character (i.e., A, B, C, D, etc.)
+            song->notes[song->size].note = noteStore;
+            // Places the octave (the 4 in C4 for example)
+            song->notes[song->size].octave = octv;
+
+            // The current time in the song from 0. Or 'ppos' if you will
+            song->notes[song->size].timeStamp = event->time_seconds;
+
+            // Store the note duration
+            active_note_timestamps[idxOn] = event->time_seconds;
+            idxOn++;
+            song->size++;
+        }
         // A note time being "inactive" is when the note ends
-		else{
-			song->notes[song->size].active = false;
-		}
-
-		char *noteStore = malloc(sizeof(char) * 2);
-
-		// Reference from smf_decode.c https://libsmf.sourceforge.net/api/
-		note_from_int(songNote, event->midi_buffer[1]);
-		sscanf(songNote, "%s %d", noteStore, &octv);
-
-        // Places the note character (i.e., A, B, C, D, etc.)
-		song->notes[song->size].note = noteStore;
-        // Places the octave (the 4 in C4 for example)
-		song->notes[song->size].octave = octv;
-
-        // The current time in the song from 0. Or 'ppos' if you will
-		song->notes[song->size].timeStamp = event->time_seconds;
-
-		// Store the note durations 
-		if(strcmp(tokens[1], "On") == 0){
-			active_note_timestamps[idxOn] = event->time_seconds;
-			idxOn++;
-		}
-        // A note time being "inactive" is when the note ends
-		else{
-			inactive_note_timestamps[idxOff] = event->time_seconds;
-			idxOff++;
-		}
-
-		song->size++;
-  	}
+        else{
+            // Store the inactive note duration
+            inactive_note_timestamps[idxOff] = event->time_seconds;
+            idxOff++;
+        }
+    }
 
 	// Fill the note_durations array for our song
 	for(int i = 0; i < idxOn; i++){
