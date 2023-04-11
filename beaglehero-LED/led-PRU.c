@@ -231,6 +231,8 @@ void setLED(uint32_t colour){
 }
 
 // Set the entire grid/array of LEDs based on the corresponding colours and provided matrix
+// Taken from the ENSC 351 class of Fall 2022 "PRU for Adafurit 8x8 Matrix" Support Files 
+// https://opencoursehub.cs.sfu.ca/bfraser/grav-cms/cmpt433/links/files/2022-student-howtos-ensc351/PRUforAdafruit8x8Matrix.pdf
 void setLedByArray(unsigned int* array){
     uint32_t colours[5] = {GREEN,RED,YELLOW,BLUE,ORANGE};
     for(int i= 0; i < 8; i++){
